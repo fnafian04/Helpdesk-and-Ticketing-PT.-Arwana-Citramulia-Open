@@ -22,4 +22,14 @@ class TicketAssignment extends Model
     {
         return $this->belongsTo(Ticket::class);
     }
+    
+    public function technician()
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    public function assigner()
+    {
+        return $this->belongsTo(User::class, 'assigned_by');
+    }
 }

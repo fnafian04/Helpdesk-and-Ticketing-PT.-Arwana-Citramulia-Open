@@ -41,7 +41,7 @@ class Ticket extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function assignments()
+    public function assignment()
     {
         return $this->hasMany(TicketAssignment::class);
     }
@@ -49,6 +49,11 @@ class Ticket extends Model
     public function comments()
     {
         return $this->hasMany(TicketComment::class);
+    }
+
+    public function solution()
+    {
+        return $this->hasOne(TicketSolution::class);
     }
 }
 

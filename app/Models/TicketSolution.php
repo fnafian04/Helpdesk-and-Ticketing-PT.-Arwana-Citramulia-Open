@@ -22,4 +22,8 @@ class TicketSolution extends Model
     {
         return $this->belongsTo(Ticket::class);
     }
+    public function solver()
+    {
+        return $this->belongsTo(User::class, 'solved_by');
+    }
 }

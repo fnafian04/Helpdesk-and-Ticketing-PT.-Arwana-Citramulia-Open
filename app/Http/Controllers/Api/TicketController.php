@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Models\Ticket;
 use App\Models\TicketStatus;
+use App\Models\TicketSolution;
 
 class TicketController extends Controller
 {
@@ -36,7 +37,7 @@ class TicketController extends Controller
             'ticket' => $ticket,
         ], 201);
     }
-    
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -55,6 +56,7 @@ class TicketController extends Controller
 
         return response()->json($tickets);
     }
+
     public function close(Ticket $ticket)
     {
         $ticket->update([
@@ -63,6 +65,102 @@ class TicketController extends Controller
         ]);
 
         return response()->json(['message' => 'Ticket closed']);
+    }
+
+    public function show(Ticket $ticket)
+    {
+        $ticket->load([
+            'requester:id,name,email',
+            'category:id,name',
+            'status:id,name',
+            'assignment.assigned_to:id,name,email',
+            'solution',
+        ]);
+
+        return response()->json([
+            'ticket' => $ticket
+        ]);
+    }
+
+    /**
+     * POST /tickets/{ticket}/assign
+     * permission: ticket.assign
+     */
+    public function assign(Request $request, Ticket $ticket)
+    {
+        $request->validate([
+            'assigned_to' => 'required|exists:users,id',
+        ]);
+
+        DB::transaction(function () use ($request, $ticket) {
+
+            TicketAssignment::updateOrCreate(
+                ['ticket_id' => $ticket->id],
+                [
+                    'assigned_to' => $request->assigned_to,
+                    'assigned_by' => $request->user()->id,
+                ]
+            );
+
+            $ticket->update([
+                'status_id' => TicketStatus::where('name', 'In Progress')->firstOrFail()->id
+            ]);
+        });
+
+        return response()->json([
+            'message' => 'Ticket assigned successfully'
+        ]);
+    }
+
+    /**
+     * POST /tickets/{ticket}/solve
+     * permission: ticket.solve
+     */
+    public function solve(Request $request, Ticket $ticket)
+    {
+        $request->validate([
+            'solution' => 'required|string|min:10',
+        ]);
+
+        // Ticket harus sudah di-assign
+        if (! $ticket->assignment) {
+            return response()->json([
+                'message' => 'Ticket has not been assigned'
+            ], 422);
+        }
+
+        // Hanya technician yang di-assign boleh solve
+        if ($ticket->assignment->technician_id !== $request->user()->id) {
+            return response()->json([
+                'message' => 'You are not assigned to this ticket'
+            ], 403);
+        }
+
+        // Tidak boleh solve ticket yang sudah closed
+        if ($ticket->status->name === 'Closed') {
+            return response()->json([
+                'message' => 'Ticket already closed'
+            ], 422);
+        }
+
+        DB::transaction(function () use ($request, $ticket) {
+
+            TicketSolution::updateOrCreate(
+                ['ticket_id' => $ticket->id],
+                [
+                    'solution_text' => $request->solution,
+                    'solved_by' => $request->user()->id,
+                ]
+            );
+
+            $ticket->update([
+                'status_id' => TicketStatus::where('name', 'Solved')->firstOrFail()->id,
+            ]);
+        });
+
+        return response()->json([
+            'message' => 'Ticket solved successfully'
+        ]);
     }
 
 }
