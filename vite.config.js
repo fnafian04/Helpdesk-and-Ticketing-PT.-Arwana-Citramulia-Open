@@ -8,6 +8,7 @@ export default defineConfig({
         "resources/css/app.css",
         "resources/js/app.js",
         "resources/css/auth-style.css",
+        "resources/css/ticket-style.css",
       ],
       refresh: true,
     }),

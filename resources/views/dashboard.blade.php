@@ -139,7 +139,10 @@
         </div>
 
         <a href="#" class="menu-item active">Dashboard</a>
-        <a href="#" class="menu-item">Buat Tiket Baru</a>
+        <a href="{{ route('tickets.create') }}"
+            class="menu-item {{ Request::routeIs('tickets.create') ? 'active' : '' }}">
+            Buat Tiket Baru
+        </a>
         <a href="#" class="menu-item">Riwayat Tiket</a>
         <a href="#" class="menu-item">Profil Saya</a>
 
