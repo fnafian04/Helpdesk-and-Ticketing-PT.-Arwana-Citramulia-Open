@@ -2,8 +2,6 @@
 @section('title', 'Manajemen User')
 
 @section('css')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <style>
         /* HEADER & BUTTONS */
         .page-header {
@@ -271,6 +269,16 @@
         .toggle-password:hover {
             color: #1565c0;
         }
+
+        /* Loading Spinner */
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 @endsection
 
@@ -292,58 +300,12 @@
                 </tr>
             </thead>
             <tbody id="userTableBody">
-
-                <tr id="user-1">
-                    <td>
-                        <div style="font-weight: 600;">Super Admin</div>
-                        <small style="color:#999;">admin@arwana.com</small>
-                    </td>
-                    <td><span class="badge role-admin">Super Admin</span></td>
-                    <td>IT Dept</td>
-                    <td><span class="badge status-active" id="badge-1">Aktif</span></td>
-                    <td style="text-align: right;">
-                        <button type="button" class="btn-icon btn-edit"
-                            onclick="editUser('Super Admin', 'admin@arwana.com', '081234567890', 'Super Admin', 'IT')"><i
-                                class="fa-solid fa-pen"></i></button>
-                        <button type="button" class="btn-icon btn-toggle-off" style="opacity:0.3; cursor:not-allowed;"><i
-                                class="fa-solid fa-power-off"></i></button>
+                <tr style="text-align: center;">
+                    <td colspan="5" style="padding: 40px;">
+                        <i class="fa-solid fa-spinner" style="font-size: 24px; animation: spin 1s linear infinite;"></i>
+                        <p style="margin-top: 10px; color: #999;">Loading data pengguna...</p>
                     </td>
                 </tr>
-
-                <tr id="user-2">
-                    <td>
-                        <div style="font-weight: 600;">Teknisi Andi</div>
-                        <small style="color:#999;">andi@arwana.com</small>
-                    </td>
-                    <td><span class="badge role-tech">Technician</span></td>
-                    <td>Maintenance</td>
-                    <td><span class="badge status-active" id="badge-2">Aktif</span></td>
-                    <td style="text-align: right;">
-                        <button type="button" class="btn-icon btn-edit"
-                            onclick="editUser('Teknisi Andi', 'andi@arwana.com', '089876543210', 'Technician', 'Maintenance')"><i
-                                class="fa-solid fa-pen"></i></button>
-                        <button type="button" class="btn-icon btn-toggle-off" id="btn-status-2"
-                            onclick="toggleStatus(2, 'Teknisi Andi', 'active')"><i
-                                class="fa-solid fa-power-off"></i></button>
-                    </td>
-                </tr>
-
-                <tr id="user-3" class="row-inactive">
-                    <td>
-                        <div style="font-weight: 600;">User Requester</div>
-                        <small style="color:#999;">user@arwana.com</small>
-                    </td>
-                    <td><span class="badge role-user">Requester</span></td>
-                    <td>Produksi</td>
-                    <td><span class="badge status-inactive" id="badge-3">Nonaktif</span></td>
-                    <td style="text-align: right;">
-                        <button type="button" class="btn-icon btn-edit"><i class="fa-solid fa-pen"></i></button>
-                        <button type="button" class="btn-icon btn-toggle-on" id="btn-status-3"
-                            onclick="toggleStatus(3, 'User Requester', 'inactive')"><i
-                                class="fa-solid fa-rotate-left"></i></button>
-                    </td>
-                </tr>
-
             </tbody>
         </table>
     </div>
@@ -386,21 +348,16 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Departemen</label>
-                        <select class="form-select" id="uDept">
-                            <option value="IT">IT</option>
-                            <option value="Produksi">Produksi</option>
-                            <option value="HRD">HRD / GA</option>
-                            <option value="Maintenance">Maintenance</option>
-                            <option value="Gudang">Gudang / Logistik</option>
+                        <select class="form-select" id="uDept" required>
+                            <option value="" disabled selected>Loading...</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Role (Hak Akses)</label>
                         <select class="form-select" id="uRole">
-                            <option value="Requester">Requester</option>
-                            <option value="Technician">Technician</option>
-                            <option value="Helpdesk">Helpdesk</option>
-                            <option value="Super Admin">Super Admin</option>
+                            <option value="technician">Technician</option>
+                            <option value="helpdesk">Helpdesk</option>
+                            <option value="supervisor">Supervisor</option>
                         </select>
                     </div>
                 </div>
@@ -418,8 +375,162 @@
 
 @section('scripts')
     <script>
+        // Define API_URL for this page
+        const API_URL = ("{{ config('app.url') }}".trim() || window.location.origin).replace(/\/$/, '');
+        
+        // Get token from session/localStorage
+        const authToken = localStorage.getItem('user_token')
+        
+        // Fetch Departments dari API
+        async function loadDepartments() {
+            try {
+                const response = await fetch(`${API_URL}/api/departments`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                populateDepartmentSelect(result.data);
+            } catch (error) {
+                console.error('Error fetching departments:', error);
+                document.getElementById('uDept').innerHTML = '<option value="" disabled selected>Error loading departments</option>';
+            }
+        }
+
+        // Populate Department Select Dropdown
+        function populateDepartmentSelect(departments) {
+            const select = document.getElementById('uDept');
+            select.innerHTML = '<option value="" disabled selected>-- Pilih Departemen --</option>';
+            
+            departments.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept.id;
+                option.textContent = dept.name.charAt(0).toUpperCase() + dept.name.slice(1); // Capitalize first letter
+                select.appendChild(option);
+            });
+        }
+
+        // Fetch Users dari API
+        async function loadUsers(page = 1, perPage = 15) {
+            try {
+                const response = await fetch(`${API_URL}/api/users?page=${page}&per_page=${perPage}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                populateTable(data.data.data);
+            } catch (error) {
+                console.error('Error fetching users:', error);
+                document.getElementById('userTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: #d62828;">
+                            <i class="fa-solid fa-exclamation-circle" style="font-size: 24px;"></i>
+                            <p style="margin-top: 10px;">Gagal memuat data pengguna</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Populate Table dengan Data
+        function populateTable(users) {
+            const tableBody = document.getElementById('userTableBody');
+            tableBody.innerHTML = '';
+
+            if (users.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: #999;">
+                            <i class="fa-solid fa-inbox" style="font-size: 24px;"></i>
+                            <p style="margin-top: 10px;">Tidak ada data pengguna</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            users.forEach(user => {
+                const roleClass = getRoleClass(user.roles[0]);
+                const roleName = formatRoleName(user.roles[0]);
+                const departmentName = user.department ? user.department.name : '-';
+
+                const row = document.createElement('tr');
+                row.id = `user-${user.id}`;
+                row.innerHTML = `
+                    <td>
+                        <div style="font-weight: 600;">${user.name}</div>
+                        <small style="color:#999;">${user.email}</small>
+                    </td>
+                    <td><span class="badge ${roleClass}">${roleName}</span></td>
+                    <td>${departmentName}</td>
+                    <td><span class="badge status-active" id="badge-${user.id}">Aktif</span></td>
+                    <td style="text-align: right;">
+                        <button type="button" class="btn-icon btn-edit" 
+                            onclick="editUser(${user.id}, '${user.name}', '${user.email}', '${user.phone}', '${user.roles[0]}', ${user.department_id || 'null'})">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button type="button" class="btn-icon btn-toggle-off" id="btn-status-${user.id}"
+                            onclick="toggleStatus(${user.id}, '${user.name}', 'active')">
+                            <i class="fa-solid fa-power-off"></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Get Badge Class berdasarkan Role
+        function getRoleClass(role) {
+            const roleMap = {
+                'master-admin': 'role-admin',
+                'admin': 'role-admin',
+                'helpdesk': 'role-admin',
+                'supervisor': 'role-admin',
+                'technician': 'role-tech',
+                'requester': 'role-user'
+            };
+            return roleMap[role] || 'role-user';
+        }
+
+        // Format Role Name untuk Display
+        function formatRoleName(role) {
+            const nameMap = {
+                'master-admin': 'Master Admin',
+                'admin': 'Admin',
+                'helpdesk': 'Helpdesk',
+                'supervisor': 'Supervisor',
+                'technician': 'Technician',
+                'requester': 'Requester'
+            };
+            return nameMap[role] || role;
+        }
+
+        // Load users saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUsers(1, 15);
+            loadDepartments(); // Load departments for modal dropdown
+        });
+
+        // Variable to track edit mode
+        let editingUserId = null;
+
         // 1. OPEN & CLOSE MODAL
         function openModal() {
+            editingUserId = null; // Reset edit mode
             document.getElementById('modalTitle').innerText = "Tambah User Baru";
 
             // Reset Form
@@ -436,7 +547,8 @@
             document.getElementById('userModal').style.display = 'flex';
         }
 
-        function editUser(name, email, phone, role, dept) {
+        function editUser(userId, name, email, phone, role, deptId) {
+            editingUserId = userId; // Store user ID for edit mode
             document.getElementById('modalTitle').innerText = "Edit User";
 
             // Isi Data Lama
@@ -444,7 +556,11 @@
             document.getElementById('uEmail').value = email;
             document.getElementById('uPhone').value = phone;
             document.getElementById('uRole').value = role;
-            document.getElementById('uDept').value = dept;
+            
+            // Set department by ID if exists
+            if (deptId) {
+                document.getElementById('uDept').value = deptId;
+            }
 
             // Password Opsional saat Edit
             document.getElementById('uPassword').value = "";
@@ -537,52 +653,194 @@
         }
 
         // 4. SIMPAN DATA
-        document.getElementById('userForm').addEventListener('submit', function(e) {
+        document.getElementById('userForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            let name = document.getElementById('uName').value;
-            let email = document.getElementById('uEmail').value;
-            let role = document.getElementById('uRole').value;
-            let dept = document.getElementById('uDept').value;
+            const name = document.getElementById('uName').value;
+            const email = document.getElementById('uEmail').value;
+            const phone = document.getElementById('uPhone').value;
+            const password = document.getElementById('uPassword').value;
+            const role = document.getElementById('uRole').value;
+            const departmentId = document.getElementById('uDept').value;
+
+            // Check if edit or create mode
+            const isEditMode = editingUserId !== null;
+
+            // Validate required fields
+            if (!name || !email || !phone || !departmentId) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Data Tidak Lengkap',
+                    text: 'Mohon isi semua field yang diperlukan',
+                    confirmButtonColor: '#d62828'
+                });
+                return;
+            }
+
+            // For create mode, password is required
+            if (!isEditMode && !password) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Password Wajib',
+                    text: 'Password harus diisi saat menambah user baru',
+                    confirmButtonColor: '#d62828'
+                });
+                return;
+            }
 
             closeModal();
 
+            // Show loading
             Swal.fire({
-                title: 'Menyimpan...',
-                timer: 800,
-                timerProgressBar: true,
+                title: isEditMode ? 'Mengupdate...' : 'Menyimpan...',
+                text: isEditMode ? 'Sedang mengupdate data user' : 'Sedang membuat user baru',
+                allowOutsideClick: false,
                 didOpen: () => {
                     Swal.showLoading()
                 }
-            }).then(() => {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: 'User berhasil disimpan.',
-                    confirmButtonColor: '#1565c0',
-                    timer: 2000
-                });
-
-                // Simulasi Tambah ke Tabel
-                let table = document.getElementById('userTableBody');
-                let newId = Math.floor(Math.random() * 1000);
-                let badgeClass = role === 'Super Admin' ? 'role-admin' : (role === 'Technician' ?
-                    'role-tech' : 'role-user');
-
-                let newRow = `
-                <tr id="user-${newId}">
-                    <td><div style="font-weight: 600;">${name}</div><small style="color:#999;">${email}</small></td>
-                    <td><span class="badge ${badgeClass}">${role}</span></td>
-                    <td>${dept}</td>
-                    <td><span class="badge status-active" id="badge-${newId}">Aktif</span></td>
-                    <td style="text-align: right;">
-                        <button type="button" class="btn-icon btn-edit" onclick="editUser('${name}', '${email}', '08xxxx', '${role}', '${dept}')"><i class="fa-solid fa-pen"></i></button>
-                        <button type="button" class="btn-icon btn-toggle-off" id="btn-status-${newId}" onclick="toggleStatus(${newId}, '${name}', 'active')"><i class="fa-solid fa-power-off"></i></button>
-                    </td>
-                </tr>
-            `;
-                table.insertAdjacentHTML('beforeend', newRow);
             });
+
+            try {
+                if (isEditMode) {
+                    // UPDATE USER
+                    const updateData = {
+                        name: name,
+                        email: email,
+                        phone: phone,
+                        department_id: parseInt(departmentId),
+                        roles: [role]
+                    };
+
+                    const response = await fetch(`${API_URL}/api/users/${editingUserId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(updateData)
+                    });
+
+                    const result = await response.json();
+                    
+                    console.log('Update Response Status:', response.status);
+                    console.log('Update Response Data:', result);
+
+                    if (!response.ok) {
+                        if (result.errors) {
+                            let errorMessages = '';
+                            for (const [field, messages] of Object.entries(result.errors)) {
+                                errorMessages += `<strong>${field}:</strong> ${messages.join(', ')}<br>`;
+                            }
+                            throw new Error(errorMessages);
+                        }
+                        throw new Error(result.message || `HTTP error! status: ${response.status}`);
+                    }
+
+                    // If password is filled, reset password separately
+                    if (password && password.trim()) {
+                        try {
+                            const resetResponse = await fetch(`${API_URL}/api/users/${editingUserId}/reset-password`, {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${authToken}`,
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({ password: password })
+                            });
+
+                            const resetResult = await resetResponse.json();
+                            console.log('Password Reset Response:', resetResponse.status, resetResult);
+
+                            if (!resetResponse.ok) {
+                                console.error('Password reset error:', resetResult);
+                                // Don't throw, just warn - user data already updated
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Sebagian Berhasil',
+                                    html: `Data user berhasil diupdate, tapi gagal reset password.<br><br>Error: ${resetResult.message || 'Unknown error'}`,
+                                    confirmButtonColor: '#f57c00'
+                                });
+                                loadUsers(1, 15);
+                                return; // Exit early, don't show success message
+                            }
+                        } catch (resetError) {
+                            console.error('Password reset exception:', resetError);
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Sebagian Berhasil',
+                                html: `Data user berhasil diupdate, tapi gagal reset password.<br><br>Error: ${resetError.message}`,
+                                confirmButtonColor: '#f57c00'
+                            });
+                            loadUsers(1, 15);
+                            return;
+                        }
+                    }
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'User berhasil diupdate.',
+                        confirmButtonColor: '#1565c0',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                } else {
+                    // CREATE USER
+                    const response = await fetch(`${API_URL}/api/users`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            name: name,
+                            email: email,
+                            phone: phone,
+                            password: password,
+                            department_id: parseInt(departmentId),
+                            roles: [role]
+                        })
+                    });
+
+                    const result = await response.json();
+                    
+                    console.log('Create Response Status:', response.status);
+                    console.log('Create Response Data:', result);
+
+                    if (!response.ok) {
+                        if (result.errors) {
+                            let errorMessages = '';
+                            for (const [field, messages] of Object.entries(result.errors)) {
+                                errorMessages += `<strong>${field}:</strong> ${messages.join(', ')}<br>`;
+                            }
+                            throw new Error(errorMessages);
+                        }
+                        throw new Error(result.message || `HTTP error! status: ${response.status}`);
+                    }
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'User berhasil ditambahkan.',
+                        confirmButtonColor: '#1565c0',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+
+                // Reload users table
+                loadUsers(1, 15);
+
+            } catch (error) {
+                console.error('Error saving user:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Menyimpan',
+                    html: error.message || 'Terjadi kesalahan saat menyimpan user',
+                    confirmButtonColor: '#d62828'
+                });
+            }
         });
 
         window.onclick = function(event) {
