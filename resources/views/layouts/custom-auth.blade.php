@@ -13,6 +13,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    // Kita bikin variabel global 'APP_URL' yang isinya mengambil dari Laravel
+    const APP_URL = "{{ config('app.url') }}"; 
+    
+    // Atau kalau mau langsung spesifik ke API:
+    const API_URL = "{{ url('/api') }}"; 
+</script>
 </head>
 
 <body>
