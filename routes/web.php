@@ -9,12 +9,18 @@ Route::get('/', function () {
     return view('landing_page');
 })->name('home');
 
-// 2. Auth Routes (Tetap disediakan biar tidak error jika ada link mengarah kesini)
-Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
-Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+// 2. Auth Routes - Fetch dari API
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+});
+
+Route::middleware('auth.session')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('/api/user', [AuthController::class, 'getCurrentUser'])->name('api.user');
+});
 
 // ====================================================
 // 3. DASHBOARD UTAMA (TANPA LOGIN / BYPASS)
@@ -22,15 +28,15 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/dashboard', function () {
     
     // GANTI VARIABEL INI MANUAL UNTUK CEK TAMPILAN DASHBOARD UTAMA
-    $role = 'Requester'; // Opsi: 'Requester', 'Helpdesk', 'Technician'
+    $role = 'requester'; // Opsi: 'requester', 'helpdesk', 'technician'
 
-    if ($role == 'Helpdesk') {
+    if ($role == 'helpdesk') {
         return view('dashboard.helpdesk');
     } 
-    elseif ($role == 'Requester') {
+    elseif ($role == 'requester') {
         return view('dashboard.requester');
     }
-    elseif ($role == 'Technician') {
+    elseif ($role == 'technician') {
         return view('dashboard.technician');
     }
     

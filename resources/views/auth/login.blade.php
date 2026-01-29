@@ -55,15 +55,16 @@
             btn.disabled = true;
 
             try {
-                // 2. Tembak API Login (Pakai variabel global API_URL tadi)
-                const response = await fetch(`${API_URL}/login`, {
+                // 2. Tembak API Login ke endpoint /api/login
+                // Note: Gunakan login field bukan email, API bisa terima email atau phone
+                const response = await fetch(`${API_URL}/api/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
                     body: JSON.stringify({
-                        email: email,
+                        login: email,  // bisa email atau phone
                         password: password
                     })
                 });
@@ -72,8 +73,8 @@
 
                 if (response.ok) {
                     // 3. SUKSES: Simpan Token!
-                    // (Pastikan key token dari temanmu namanya 'token' atau 'access_token')
-                    localStorage.setItem('user_token', data.token || data.access_token);
+                    const token = data.token || data.access_token;
+                    localStorage.setItem('user_token', token);
 
                     // Notifikasi Sukses
                     Swal.fire({
@@ -88,10 +89,11 @@
 
                 } else {
                     // 4. GAGAL
+                    const errorMsg = data.message || data.errors?.login?.[0] || 'Email atau password salah.';
                     Swal.fire({
                         icon: 'error',
                         title: 'Gagal Masuk',
-                        text: data.message || 'Email atau password salah.',
+                        text: errorMsg,
                         confirmButtonColor: '#d62828'
                     });
                 }

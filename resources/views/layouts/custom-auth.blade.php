@@ -14,12 +14,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-    // Kita bikin variabel global 'APP_URL' yang isinya mengambil dari Laravel
-    const APP_URL = "{{ config('app.url') }}"; 
-    
-    // Atau kalau mau langsung spesifik ke API:
-    const API_URL = "{{ url('/api') }}"; 
-</script>
+        
+    // API base URL dari config atau fallback ke browser origin
+    const API_URL = ("{{ config('app.url') }}".trim() || window.location.origin).replace(/\/$/, '');
+    </script>
 </head>
 
 <body>
