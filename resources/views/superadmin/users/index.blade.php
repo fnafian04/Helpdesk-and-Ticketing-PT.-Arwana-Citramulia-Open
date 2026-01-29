@@ -279,6 +279,70 @@
                 transform: rotate(360deg);
             }
         }
+
+        /* PAGINATION */
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 25px;
+            padding: 0 30px;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .per-page-selector {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .per-page-selector:focus {
+            border-color: #1565c0;
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .page-btn {
+            padding: 8px 14px;
+            border: 1px solid #ddd;
+            background: white;
+            color: #666;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: #1565c0;
+            color: white;
+            border-color: #1565c0;
+        }
+
+        .page-btn.active {
+            background: #1565c0;
+            color: white;
+            border-color: #1565c0;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 @endsection
 
@@ -308,6 +372,26 @@
                 </tr>
             </tbody>
         </table>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                <span id="paginationInfoText">Menampilkan 0 dari 0 users</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <label for="perPageSelect" style="font-size: 13px;">Per halaman:</label>
+                    <select id="perPageSelect" class="per-page-selector" onchange="changePerPage()">
+                        <option value="10">10</option>
+                        <option value="15" selected>15</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
+            <div class="pagination-buttons" id="paginationButtons">
+                <!-- Buttons will be generated dynamically -->
+            </div>
+        </div>
     </div>
 
     <div id="userModal" class="modal-overlay">
@@ -381,6 +465,17 @@
         // Get token from session/localStorage
         const authToken = localStorage.getItem('user_token')
         
+        // Pagination state
+        let currentPage = 1;
+        let currentPerPage = 15;
+        
+        // Change per page handler
+        function changePerPage() {
+            currentPerPage = parseInt(document.getElementById('perPageSelect').value);
+            currentPage = 1; // Reset to first page
+            loadUsers(currentPage, currentPerPage);
+        }
+        
         // Fetch Departments dari API
         async function loadDepartments() {
             try {
@@ -417,7 +512,14 @@
         }
 
         // Fetch Users dari API
-        async function loadUsers(page = 1, perPage = 15) {
+        async function loadUsers(page = 1, perPage = null) {
+            // Use currentPerPage if perPage not provided
+            if (perPage === null) {
+                perPage = currentPerPage;
+            }
+            
+            currentPage = page; // Update current page state
+            
             try {
                 const response = await fetch(`${API_URL}/api/users?page=${page}&per_page=${perPage}`, {
                     method: 'GET',
@@ -431,8 +533,9 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                const data = await response.json();
-                populateTable(data.data.data);
+                const result = await response.json();
+                populateTable(result.data.data);
+                updatePagination(result.data);
             } catch (error) {
                 console.error('Error fetching users:', error);
                 document.getElementById('userTableBody').innerHTML = `
@@ -444,6 +547,81 @@
                     </tr>
                 `;
             }
+        }
+
+        // Update Pagination UI
+        function updatePagination(paginationData) {
+            const infoText = document.getElementById('paginationInfoText');
+            const buttons = document.getElementById('paginationButtons');
+            
+            // Update info text
+            infoText.textContent = `Menampilkan ${paginationData.from || 0} - ${paginationData.to || 0} dari ${paginationData.total} users`;
+            
+            // Clear existing buttons
+            buttons.innerHTML = '';
+            
+            // Previous button
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'page-btn';
+            prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+            prevBtn.disabled = paginationData.current_page === 1;
+            prevBtn.onclick = () => loadUsers(paginationData.current_page - 1);
+            buttons.appendChild(prevBtn);
+            
+            // Page number buttons
+            const startPage = Math.max(1, paginationData.current_page - 2);
+            const endPage = Math.min(paginationData.last_page, paginationData.current_page + 2);
+            
+            // First page if not in range
+            if (startPage > 1) {
+                const firstBtn = document.createElement('button');
+                firstBtn.className = 'page-btn';
+                firstBtn.textContent = '1';
+                firstBtn.onclick = () => loadUsers(1);
+                buttons.appendChild(firstBtn);
+                
+                if (startPage > 2) {
+                    const dots = document.createElement('span');
+                    dots.textContent = '...';
+                    dots.style.padding = '0 8px';
+                    dots.style.color = '#999';
+                    buttons.appendChild(dots);
+                }
+            }
+            
+            // Page numbers
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = 'page-btn' + (i === paginationData.current_page ? ' active' : '');
+                pageBtn.textContent = i;
+                pageBtn.onclick = () => loadUsers(i);
+                buttons.appendChild(pageBtn);
+            }
+            
+            // Last page if not in range
+            if (endPage < paginationData.last_page) {
+                if (endPage < paginationData.last_page - 1) {
+                    const dots = document.createElement('span');
+                    dots.textContent = '...';
+                    dots.style.padding = '0 8px';
+                    dots.style.color = '#999';
+                    buttons.appendChild(dots);
+                }
+                
+                const lastBtn = document.createElement('button');
+                lastBtn.className = 'page-btn';
+                lastBtn.textContent = paginationData.last_page;
+                lastBtn.onclick = () => loadUsers(paginationData.last_page);
+                buttons.appendChild(lastBtn);
+            }
+            
+            // Next button
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'page-btn';
+            nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+            nextBtn.disabled = paginationData.current_page === paginationData.last_page;
+            nextBtn.onclick = () => loadUsers(paginationData.current_page + 1);
+            buttons.appendChild(nextBtn);
         }
 
         // Populate Table dengan Data
@@ -521,7 +699,7 @@
 
         // Load users saat halaman dimuat
         document.addEventListener('DOMContentLoaded', function() {
-            loadUsers(1, 15);
+            loadUsers(currentPage, currentPerPage);
             loadDepartments(); // Load departments for modal dropdown
         });
 
@@ -760,7 +938,7 @@
                                     html: `Data user berhasil diupdate, tapi gagal reset password.<br><br>Error: ${resetResult.message || 'Unknown error'}`,
                                     confirmButtonColor: '#f57c00'
                                 });
-                                loadUsers(1, 15);
+                                loadUsers(currentPage, currentPerPage);
                                 return; // Exit early, don't show success message
                             }
                         } catch (resetError) {
@@ -771,7 +949,7 @@
                                 html: `Data user berhasil diupdate, tapi gagal reset password.<br><br>Error: ${resetError.message}`,
                                 confirmButtonColor: '#f57c00'
                             });
-                            loadUsers(1, 15);
+                            loadUsers(currentPage, currentPerPage);
                             return;
                         }
                     }
@@ -830,7 +1008,7 @@
                 }
 
                 // Reload users table
-                loadUsers(1, 15);
+                loadUsers(currentPage, currentPerPage);
 
             } catch (error) {
                 console.error('Error saving user:', error);

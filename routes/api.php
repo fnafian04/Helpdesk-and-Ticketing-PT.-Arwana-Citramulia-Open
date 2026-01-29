@@ -103,7 +103,7 @@ Route::get('/departments', [DepartmentController::class, 'index']);
 Route::get('/departments/{department}', [DepartmentController::class, 'show']);
 Route::middleware('auth:sanctum')->group(function () {
     // POST/PUT/PATCH/DELETE - hanya admin & helpdesk
-    Route::middleware('role:admin|helpdesk')->group(function () {
+    Route::middleware('role:master-admin|helpdesk')->group(function () {
         Route::post('/departments', [DepartmentController::class, 'store']);
         Route::put('/departments/{department}', [DepartmentController::class, 'update']);
         Route::patch('/departments/{department}', [DepartmentController::class, 'update']);
