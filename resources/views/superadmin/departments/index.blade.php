@@ -2,35 +2,37 @@
 @section('title', 'Manajemen Departemen')
 
 @section('css')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
-    /* CSS CONSISTENT WITH USERS */
+    /* Style Tambahan untuk Tabel & Modal */
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
     .page-title { font-size: 24px; font-weight: 700; color: #333; margin: 0; }
-    .btn-add { background: #1565c0; color: white; padding: 12px 25px; border-radius: 10px; font-weight: 600; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.3s; }
+    
+    .btn-add { 
+        background: #1565c0; color: white; padding: 12px 25px; 
+        border-radius: 10px; font-weight: 600; border: none; cursor: pointer; 
+        display: flex; align-items: center; gap: 8px; transition: 0.3s; 
+    }
     .btn-add:hover { background: #0d47a1; }
     
     .table-container { background: white; padding: 30px; border-radius: 16px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); }
     .dept-table { width: 100%; border-collapse: separate; border-spacing: 0; }
     .dept-table th { text-align: left; color: #888; padding: 15px; border-bottom: 2px solid #f0f0f0; font-size: 12px; font-weight: 700; text-transform: uppercase; }
-    .dept-table td { padding: 15px; border-bottom: 1px solid #f9f9f9; font-size: 14px; color: #333; vertical-align: middle; transition: background 0.3s; }
-    .dept-table tr:hover td { background: #fcfcfc; }
-
-    .btn-icon { width: 32px; height: 32px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: 0.3s; margin-right: 5px; }
-    .btn-edit { background: #fff3e0; color: #f57c00; } .btn-edit:hover { background: #f57c00; color: white; }
-    .btn-del { background: #ffebee; color: #d62828; } .btn-del:hover { background: #d62828; color: white; }
-
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(4px); }
-    .modal-box { background: white; width: 450px; padding: 30px; border-radius: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.25); animation: slideIn 0.3s ease; }
-    @keyframes slideIn { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .dept-table td { padding: 15px; border-bottom: 1px solid #f9f9f9; font-size: 14px; color: #333; vertical-align: middle; }
     
+    /* Tombol Aksi */
+    .btn-icon { width: 32px; height: 32px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin-right: 5px; }
+    .btn-edit { background: #fff3e0; color: #f57c00; } 
+    .btn-del { background: #ffebee; color: #d62828; } 
+
+    /* Modal */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 999; backdrop-filter: blur(2px); }
+    .modal-box { background: white; width: 450px; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
     .form-group { margin-bottom: 15px; }
     .form-label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 5px; }
     .form-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
-
-    /* Animasi Hapus */
-    .fade-out { animation: fadeOut 0.5s forwards; }
-    @keyframes fadeOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(-20px); } }
+    
+    /* Loading Spinner pada Tabel */
+    .loading-row { text-align: center; color: #666; font-style: italic; padding: 20px; }
 </style>
 @endsection
 
@@ -46,38 +48,12 @@
                 <tr>
                     <th style="width: 80px;">ID</th>
                     <th>Nama Departemen</th>
-                    <th>Kode</th>
+                    <th>Kode (Auto)</th>
                     <th style="text-align: right;">Aksi</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr id="row-1">
-                    <td>1</td>
-                    <td><strong>Information Technology (IT)</strong></td>
-                    <td><span style="background:#e3f2fd; color:#1565c0; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:600;">DEPT-IT</span></td>
-                    <td style="text-align: right;">
-                        <button class="btn-icon btn-edit" onclick="editDept(1, 'Information Technology (IT)', 'DEPT-IT')"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn-icon btn-del" onclick="deleteDept(1, 'IT Support')"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>
-                <tr id="row-2">
-                    <td>2</td>
-                    <td><strong>Human Resource (HRD)</strong></td>
-                    <td><span style="background:#f3e5f5; color:#7b1fa2; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:600;">DEPT-HR</span></td>
-                    <td style="text-align: right;">
-                        <button class="btn-icon btn-edit" onclick="editDept(2, 'Human Resource (HRD)', 'DEPT-HR')"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn-icon btn-del" onclick="deleteDept(2, 'HRD')"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>
-                <tr id="row-3">
-                    <td>3</td>
-                    <td><strong>Produksi</strong></td>
-                    <td><span style="background:#e8f5e9; color:#2e7d32; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:600;">DEPT-PRO</span></td>
-                    <td style="text-align: right;">
-                        <button class="btn-icon btn-edit" onclick="editDept(3, 'Produksi', 'DEPT-PRO')"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn-icon btn-del" onclick="deleteDept(3, 'Produksi')"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>
+            <tbody id="table-body">
+                <tr><td colspan="4" class="loading-row">Sedang memuat data...</td></tr>
             </tbody>
         </table>
     </div>
@@ -85,14 +61,10 @@
     <div id="deptModal" class="modal-overlay">
         <div class="modal-box">
             <h3 style="margin-bottom: 20px;" id="modalTitle">Tambah Departemen</h3>
-            <form id="deptForm">
+            <form onsubmit="handleSave(event)">
                 <div class="form-group">
                     <label class="form-label">Nama Departemen</label>
-                    <input type="text" id="deptName" class="form-input" placeholder="Contoh: Finance" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Kode Singkatan</label>
-                    <input type="text" id="deptCode" class="form-input" placeholder="Contoh: DEPT-FIN" required>
+                    <input type="text" id="deptName" class="form-input" placeholder="Contoh: IT Support" required>
                 </div>
                 
                 <div style="text-align: right; margin-top: 25px;">
@@ -106,17 +78,88 @@
 
 @section('scripts')
 <script>
+    // URL Relative (Otomatis ikut localhost:8000)
+    const API_URL = '/api/departments';
+
+    // Variabel state untuk Edit Mode
+    let isEditMode = false;
+    let currentId = null;
+
+    // 1. FUNGSI MENGAMBIL DATA (READ)
+    async function loadDepartments() {
+        const tbody = document.getElementById('table-body');
+        
+        try {
+            // Fetch ke API
+            const response = await fetch(API_URL, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) throw new Error('Gagal memuat data');
+
+            const result = await response.json();
+            // Handle jika response dibungkus {data: []} atau langsung []
+            const departments = result.data || result; 
+
+            // Render ke HTML
+            let html = '';
+            if (departments.length === 0) {
+                html = '<tr><td colspan="4" class="loading-row">Belum ada data departemen.</td></tr>';
+            } else {
+                departments.forEach(dept => {
+                    // Visualisasi Kode (Karena di DB tidak ada kolom kode)
+                    const displayCode = `DEPT-${dept.id.toString().padStart(3, '0')}`;
+                    
+                    html += `
+                        <tr id="row-${dept.id}">
+                            <td>${dept.id}</td>
+                            <td><strong>${dept.name}</strong></td>
+                            <td>
+                                <span style="background:#e3f2fd; color:#1565c0; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:600;">
+                                    ${displayCode}
+                                </span>
+                            </td>
+                            <td style="text-align: right;">
+                                <button class="btn-icon btn-edit" onclick="openEdit(${dept.id}, '${dept.name}')">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button class="btn-icon btn-del" onclick="handleDelete(${dept.id}, '${dept.name}')">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            tbody.innerHTML = html;
+
+        } catch (error) {
+            console.error(error);
+            tbody.innerHTML = `<tr><td colspan="4" class="loading-row" style="color:red">Error: ${error.message}</td></tr>`;
+        }
+    }
+
+    // Panggil saat halaman diload
+    document.addEventListener('DOMContentLoaded', loadDepartments);
+
+
+    // 2. FUNGSI MODAL (Buka/Tutup)
     function openModal() {
+        isEditMode = false;
+        currentId = null;
         document.getElementById('modalTitle').innerText = "Tambah Departemen";
         document.getElementById('deptName').value = "";
-        document.getElementById('deptCode').value = "";
         document.getElementById('deptModal').style.display = 'flex';
     }
 
-    function editDept(id, name, code) {
+    function openEdit(id, name) {
+        isEditMode = true;
+        currentId = id;
         document.getElementById('modalTitle').innerText = "Edit Departemen";
         document.getElementById('deptName').value = name;
-        document.getElementById('deptCode').value = code;
         document.getElementById('deptModal').style.display = 'flex';
     }
 
@@ -124,48 +167,85 @@
         document.getElementById('deptModal').style.display = 'none';
     }
 
-    // --- FUNGSI HAPUS YANG LEBIH KEREN ---
-    function deleteDept(id, name) {
+    // 3. FUNGSI SIMPAN (CREATE & UPDATE)
+    async function handleSave(event) {
+        event.preventDefault(); // Mencegah reload form
+
+        const name = document.getElementById('deptName').value;
+        
+        // Tentukan URL & Method (POST untuk Baru, PUT untuk Edit)
+        const url = isEditMode ? `${API_URL}/${currentId}` : API_URL;
+        const method = isEditMode ? 'PUT' : 'POST';
+
+        try {
+            // Ambil CSRF Token dari meta tag layout
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken // WAJIB untuk Session Auth
+                },
+                body: JSON.stringify({ name: name })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Gagal menyimpan data');
+            }
+
+            // Sukses
+            closeModal();
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: isEditMode ? 'Data diperbarui!' : 'Data ditambahkan!',
+                timer: 1500,
+                showConfirmButton: false
+            });
+            
+            loadDepartments(); // Refresh tabel
+
+        } catch (error) {
+            Swal.fire({ icon: 'error', title: 'Gagal', text: error.message });
+        }
+    }
+
+    // 4. FUNGSI HAPUS (DELETE)
+    function handleDelete(id, name) {
         Swal.fire({
-            title: 'Hapus ' + name + '?',
-            text: "Data yang dihapus tidak dapat dikembalikan!",
+            title: `Hapus ${name}?`,
+            text: "Data tidak bisa dikembalikan!",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d62828',
-            cancelButtonColor: '#aaa',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal',
-            reverseButtons: true
-        }).then((result) => {
+            confirmButtonText: 'Ya, Hapus'
+        }).then(async (result) => {
             if (result.isConfirmed) {
-                // 1. Ambil Elemen Baris
-                const row = document.getElementById('row-' + id);
-                
-                // 2. Efek Fade Out
-                row.classList.add('fade-out');
-
-                // 3. Hapus setelah animasi selesai
-                setTimeout(() => {
-                    row.remove();
-                    Swal.fire({
-                        title: 'Terhapus!',
-                        text: 'Departemen ' + name + ' berhasil dihapus.',
-                        icon: 'success',
-                        confirmButtonColor: '#1565c0'
+                try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    
+                    const response = await fetch(`${API_URL}/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        }
                     });
-                }, 500);
+
+                    if (!response.ok) throw new Error('Gagal menghapus');
+
+                    Swal.fire('Terhapus!', 'Data berhasil dihapus.', 'success');
+                    loadDepartments(); // Refresh tabel
+
+                } catch (error) {
+                    Swal.fire('Error', 'Gagal menghapus data.', 'error');
+                }
             }
         })
-    }
-
-    document.getElementById('deptForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        closeModal();
-        Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Data departemen tersimpan!', confirmButtonColor: '#1565c0' });
-    });
-
-    window.onclick = function(event) {
-        if (event.target.classList.contains('modal-overlay')) { closeModal(); }
     }
 </script>
 @endsection
