@@ -23,27 +23,31 @@ Route::middleware('auth.session')->group(function () {
 });
 
 // ====================================================
-// 3. DASHBOARD UTAMA (TANPA LOGIN / BYPASS)
+// 3. DASHBOARD UTAMA (LOGIC PENGARAHAN USER)
 // ====================================================
 Route::get('/dashboard', function () {
     
-    // GANTI VARIABEL INI MANUAL UNTUK CEK TAMPILAN DASHBOARD UTAMA
-    $role = 'requester'; // Opsi: 'requester', 'helpdesk', 'technician'
+    // Ambil data user yang sedang login
+    $user = auth()->user();
 
-    if ($role == 'helpdesk') {
-        return view('dashboard.helpdesk');
+    // Cek Role berdasarkan nama persis di tabel 'roles'
+    // Jika rolenya 'master-admin', lempar ke Dashboard Superadmin
+    if ($user->hasRole('master-admin')) {
+        return redirect()->route('superadmin.dashboard');
     } 
-    elseif ($role == 'requester') {
-        return view('dashboard.requester');
+    // Jika rolenya 'helpdesk', lempar ke Dashboard Helpdesk
+    elseif ($user->hasRole('helpdesk')) {
+        return redirect()->route('helpdesk.incoming'); 
     }
-    elseif ($role == 'technician') {
-        return view('dashboard.technician');
+    // Jika rolenya 'technician', lempar ke Dashboard Teknisi
+    elseif ($user->hasRole('technician')) {
+        return redirect()->route('technician.dashboard');
     }
     
-    return view('dashboard.requester'); // Default
+    // Default: Jika user biasa (requester), masuk ke Dashboard Requester
+    return view('dashboard.requester'); 
 
-})->name('dashboard');
-
+})->middleware(['auth'])->name('dashboard');
 
 // ====================================================
 // 4. AKSES LANGSUNG SEMUA HALAMAN (TANPA LOGIN)
@@ -138,7 +142,7 @@ Route::prefix('technician')->group(function () {
 });
 
 // Group Super Admin
-Route::prefix('superadmin')->group(function () {
+Route::prefix('superadmin')->middleware(['auth'])->group(function () {
     
     // Dashboard
     Route::get('/dashboard', function () {
@@ -150,12 +154,12 @@ Route::prefix('superadmin')->group(function () {
         return view('superadmin.users.index'); 
     })->name('superadmin.users');
 
-    // Departemen (BARU)
+    // Departemen
     Route::get('/departments', function () { 
         return view('superadmin.departments.index'); 
     })->name('superadmin.departments');
 
-    // Laporan Global (BARU)
+    // Laporan Global
     Route::get('/reports', function () { 
         return view('superadmin.reports.index'); 
     })->name('superadmin.reports');
