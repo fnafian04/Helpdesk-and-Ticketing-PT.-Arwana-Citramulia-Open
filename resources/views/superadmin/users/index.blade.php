@@ -643,9 +643,16 @@
                 const roleClass = getRoleClass(user.roles[0]);
                 const roleName = formatRoleName(user.roles[0]);
                 const departmentName = user.department ? user.department.name : '-';
+                const isActive = user.is_active === true || user.is_active === 1; // Handle both boolean and integer
 
                 const row = document.createElement('tr');
                 row.id = `user-${user.id}`;
+                
+                const statusBadgeClass = isActive ? 'status-active' : 'status-inactive';
+                const statusBadgeText = isActive ? 'Aktif' : 'Nonaktif';
+                const btnClass = isActive ? 'btn-icon btn-toggle-off' : 'btn-icon btn-toggle-on';
+                const btnIcon = isActive ? 'fa-solid fa-power-off' : 'fa-solid fa-rotate-left';
+                
                 row.innerHTML = `
                     <td>
                         <div style="font-weight: 600;">${user.name}</div>
@@ -653,18 +660,21 @@
                     </td>
                     <td><span class="badge ${roleClass}">${roleName}</span></td>
                     <td>${departmentName}</td>
-                    <td><span class="badge status-active" id="badge-${user.id}">Aktif</span></td>
+                    <td><span class="badge ${statusBadgeClass}" id="badge-${user.id}">${statusBadgeText}</span></td>
                     <td style="text-align: right;">
                         <button type="button" class="btn-icon btn-edit" 
                             onclick="editUser(${user.id}, '${user.name}', '${user.email}', '${user.phone}', '${user.roles[0]}', ${user.department_id || 'null'})">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <button type="button" class="btn-icon btn-toggle-off" id="btn-status-${user.id}"
-                            onclick="toggleStatus(${user.id}, '${user.name}', 'active')">
-                            <i class="fa-solid fa-power-off"></i>
+                        <button type="button" class="${btnClass}" id="btn-status-${user.id}"
+                            onclick="toggleStatus(${user.id}, '${user.name}', ${isActive})">
+                            <i class="${btnIcon}"></i>
                         </button>
                     </td>
                 `;
+                if (!isActive) {
+                    row.classList.add('row-inactive');
+                }
                 tableBody.appendChild(row);
             });
         }
@@ -767,12 +777,13 @@
         }
 
         // 3. TOGGLE STATUS LOGIC
-        function toggleStatus(id, name, currentStatus) {
-            let isDeactivating = (currentStatus === 'active');
+        function toggleStatus(userId, userName, isCurrentlyActive) {
+            let isDeactivating = isCurrentlyActive === true;
+            let newStatus = !isCurrentlyActive;
             let titleText = isDeactivating ? 'Nonaktifkan User?' : 'Aktifkan Kembali?';
             let bodyText = isDeactivating ?
-                `User <strong>${name}</strong> tidak akan bisa login.` :
-                `User <strong>${name}</strong> akan dapat login kembali.`;
+                `User <strong>${userName}</strong> tidak akan bisa login.` :
+                `User <strong>${userName}</strong> akan dapat login kembali.`;
             let confirmColor = isDeactivating ? '#d62828' : '#2e7d32';
 
             Swal.fire({
@@ -791,37 +802,79 @@
                 confirmButtonText: 'Ya, Lanjutkan',
                 cancelButtonText: '<span style="color:#555">Batal</span>',
                 reverseButtons: true
-            }).then((result) => {
+            }).then(async (result) => {
                 if (result.isConfirmed) {
-                    const row = document.getElementById('user-' + id);
-                    const badge = document.getElementById('badge-' + id);
-                    const btn = document.getElementById('btn-status-' + id);
+                    // Show loading
+                    Swal.fire({
+                        title: 'Mengupdate Status...',
+                        text: 'Sedang memproses perubahan status user',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading()
+                        }
+                    });
 
-                    if (isDeactivating) {
-                        row.classList.add('row-inactive');
-                        badge.className = 'badge status-inactive';
-                        badge.innerText = 'Nonaktif';
-                        btn.className = 'btn-icon btn-toggle-on';
-                        btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i>';
-                        btn.setAttribute('onclick', `toggleStatus(${id}, '${name}', 'inactive')`);
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'User Nonaktif',
-                            timer: 1500,
-                            showConfirmButton: false
+                    try {
+                        // Make API request to update status
+                        const response = await fetch(`${API_URL}/api/users/${userId}/status`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Authorization': `Bearer ${authToken}`,
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                is_active: newStatus
+                            })
                         });
-                    } else {
-                        row.classList.remove('row-inactive');
-                        badge.className = 'badge status-active';
-                        badge.innerText = 'Aktif';
-                        btn.className = 'btn-icon btn-toggle-off';
-                        btn.innerHTML = '<i class="fa-solid fa-power-off"></i>';
-                        btn.setAttribute('onclick', `toggleStatus(${id}, '${name}', 'active')`);
+
+                        const result = await response.json();
+                        console.log('Status Update Response:', response.status, result);
+
+                        if (!response.ok) {
+                            throw new Error(result.message || `HTTP error! status: ${response.status}`);
+                        }
+
+                        // Update UI
+                        const row = document.getElementById('user-' + userId);
+                        const badge = document.getElementById('badge-' + userId);
+                        const btn = document.getElementById('btn-status-' + userId);
+
+                        if (newStatus) {
+                            // User activated
+                            row.classList.remove('row-inactive');
+                            badge.className = 'badge status-active';
+                            badge.innerText = 'Aktif';
+                            btn.className = 'btn-icon btn-toggle-off';
+                            btn.innerHTML = '<i class="fa-solid fa-power-off"></i>';
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'User Aktif',
+                                text: `${userName} berhasil diaktifkan`,
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            // User deactivated
+                            row.classList.add('row-inactive');
+                            badge.className = 'badge status-inactive';
+                            badge.innerText = 'Nonaktif';
+                            btn.className = 'btn-icon btn-toggle-on';
+                            btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i>';
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'User Nonaktif',
+                                text: `${userName} berhasil dinonaktifkan`,
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error updating status:', error);
                         Swal.fire({
-                            icon: 'success',
-                            title: 'User Aktif',
-                            timer: 1500,
-                            showConfirmButton: false
+                            icon: 'error',
+                            title: 'Gagal Mengupdate Status',
+                            html: error.message || 'Terjadi kesalahan saat mengupdate status user',
+                            confirmButtonColor: '#d62828'
                         });
                     }
                 }
