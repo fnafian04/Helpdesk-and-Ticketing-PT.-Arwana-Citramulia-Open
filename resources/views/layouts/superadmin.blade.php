@@ -13,17 +13,6 @@
 
     @vite(['resources/css/global.css'])
     <style>
-        @yield('css')
-    </style> padding: 12px 15px;
-    color: #666;
-    border-radius: 10px;
-    margin-bottom: 8px;
-    font-weight: 500;
-    font-size: 14px;
-    transition: 0.3s;
-    position: relative;
-    }
-
     .menu-item i {
     width: 30px;
     font-size: 16px;
