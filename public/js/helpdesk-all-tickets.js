@@ -1,4 +1,20 @@
 document.addEventListener("DOMContentLoaded", function () {
+  // === GLOBAL CONFIG ===
+  const API_URL = typeof window.API_URL !== "undefined" ? window.API_URL : ""; // Fallback
+
+  // === HELPER: Escape HTML ===
+  function escapeHtml(text) {
+    if (!text) return "";
+    const map = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;",
+    };
+    return String(text).replace(/[&<>"']/g, (m) => map[m]);
+  }
+
   // === DOM ELEMENTS ===
   const tableBody = document.getElementById("ticketTableBody");
   const noData = document.getElementById("noDataMessage");
@@ -44,50 +60,78 @@ document.addEventListener("DOMContentLoaded", function () {
 
     try {
       // Ambil data per_page 100 agar search client-side maksimal
-      const res = await fetchWithAuth(`${API_URL}/api/tickets?per_page=100`);
+      const apiUrl = `${API_URL}/api/tickets?per_page=100`;
+      console.log("🔄 Fetching tickets from:", apiUrl);
+      const res = await fetchWithAuth(apiUrl);
 
-      if (!res || !res.ok) throw new Error("Gagal mengambil data");
+      if (!res) {
+        throw new Error("Network request failed (res is null)");
+      }
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      }
 
       const json = await res.json();
+      console.log("📦 Raw API Response:", json);
       let rawData = [];
 
       // Handle struktur response Laravel (data wrapper)
-      if (json.data && Array.isArray(json.data)) rawData = json.data;
-      else if (Array.isArray(json)) rawData = json;
-      else if (json.tickets) rawData = json.tickets;
+      if (json.data && Array.isArray(json.data)) {
+        rawData = json.data;
+        console.log(`✅ Parsed as json.data with ${rawData.length} items`);
+      } else if (Array.isArray(json)) {
+        rawData = json;
+        console.log(`✅ Parsed as direct array with ${rawData.length} items`);
+      } else if (json.tickets && Array.isArray(json.tickets)) {
+        rawData = json.tickets;
+        console.log(`✅ Parsed as json.tickets with ${rawData.length} items`);
+      } else {
+        console.warn("⚠️ Unexpected response format, raw content:", json);
+        rawData = [];
+      }
 
       // Mapping Awal (Data Lite dari List)
-      allTickets = rawData.map((t) => ({
-        id: t.id,
-        ticket_number: t.ticket_number || `T-${t.id}`,
-        subject: t.title || t.subject || "-",
-        // Data ini mungkin null di list, nanti diupdate via updateRowDetails
-        requester: t.requester
-          ? t.requester.name
-          : t.requester_name || "Loading...",
-        dept:
-          t.requester && t.requester.department
-            ? t.requester.department.name
-            : t.department_name || "-",
-        tech:
-          t.assignment && t.assignment.technician
-            ? t.assignment.technician.name
-            : t.technician_name || "-",
-        status: t.status || "Pending",
-        date: t.created_at || t.date,
-        // Simpan raw object untuk referensi
-        raw: t,
-      }));
+      allTickets = rawData.map((t) => {
+        // Log first few items untuk debugging
+        if (rawData.indexOf(t) < 2) {
+          console.log(`📌 Ticket ${t.id} structure:`, {
+            id: t.id,
+            has_requester: !!t.requester,
+            requester_name: t.requester?.name,
+            has_department: !!(t.requester?.department || t.department),
+            department_name:
+              t.requester?.department?.name || t.department?.name,
+            full_requester: t.requester,
+          });
+        }
+
+        return {
+          id: t.id,
+          ticket_number: t.ticket_number || `T-${t.id}`,
+          subject: t.title || t.subject || "-",
+          requester: t.requester?.name || t.requester_name || "Loading...",
+          requester_id: t.requester?.id,
+          dept:
+            t.requester?.department?.name ||
+            t.department?.name ||
+            t.department_name ||
+            null,
+          tech: t.assignment?.technician?.name || t.technician_name || "-",
+          status: t.status?.name || t.status || "Pending",
+          date: t.created_at || t.date,
+          raw: t,
+        };
+      });
 
       // Sort (Terbaru diatas)
       allTickets.sort((a, b) => b.id - a.id);
 
       filteredTickets = [...allTickets];
       renderTable(1);
+      console.log(`✨ Successfully loaded ${allTickets.length} tickets`);
     } catch (e) {
-      console.error("Load Error:", e);
-      tableBody.innerHTML =
-        '<tr><td colspan="6" style="text-align:center; padding:30px; color:#d62828;"><i class="fa-solid fa-circle-exclamation"></i> Gagal memuat data tiket.</td></tr>';
+      console.error("❌ Load Error:", e);
+      tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:#d62828;"><i class="fa-solid fa-circle-exclamation"></i> <br />Gagal memuat data tiket.<br /><small style="font-size:11px; color:#999;">${escapeHtml(e.message)}</small></td></tr>`;
     }
   }
 
@@ -197,16 +241,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // 2. Update Department
       if (deptEl) {
-        if (
-          detail.requester &&
-          detail.requester.department &&
-          detail.requester.department.name
-        )
-          deptEl.innerText = detail.requester.department.name;
-        else if (detail.department && detail.department.name)
-          deptEl.innerText = detail.department.name;
-        else if (detail.department_name)
-          deptEl.innerText = detail.department_name;
+        let deptName =
+          (detail.requester &&
+            detail.requester.department &&
+            detail.requester.department.name) ||
+          (detail.department && detail.department.name) ||
+          detail.department_name ||
+          null;
+
+        if (!deptName && detail.requester?.id) {
+          try {
+            const userRes = await fetchWithAuth(
+              `${API_URL}/api/users/${detail.requester.id}`,
+            );
+            if (userRes && userRes.ok) {
+              const userData = await userRes.json();
+              const user = userData.data || userData.user || userData;
+              deptName = user.department?.name || user.departemen || null;
+            }
+          } catch (e) {
+            console.warn("Failed to fetch user for department", e);
+          }
+        }
+
+        deptEl.innerText = deptName || "-";
       }
 
       // 3. Update Technician
@@ -315,55 +373,233 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (detail) {
-      // Render basic data
-      document.getElementById("mId").innerText =
-        `#${detail.ticket_number || detail.id}`;
-      document.getElementById("mSubject").innerText =
-        detail.title || detail.subject;
-
+      // Get data
+      const requesterName = escapeHtml(
+        detail.requester?.name || detail.requester_name || "-",
+      );
+      const technicianName = escapeHtml(
+        (detail.assignment &&
+          detail.assignment.technician &&
+          detail.assignment.technician.name) ||
+          detail.technician_name ||
+          "-",
+      );
       let deptTxt = "-";
       if (detail.requester?.department?.name)
         deptTxt = detail.requester.department.name;
       else if (detail.department?.name) deptTxt = detail.department.name;
 
-      document.getElementById("mDept").innerText =
-        `${deptTxt} • ${detail.status}`;
+      const currentStatus = detail.status?.name || detail.status || "-";
+      const isResolved = currentStatus.toUpperCase() === "RESOLVED";
 
-      // Render Timeline (Logs/Histories)
-      const logs = detail.histories || detail.logs || [];
-      renderTimeline(logs);
+      // Update header
+      document.getElementById("mId").innerText =
+        `#${detail.ticket_number || detail.id}`;
+      document.getElementById("mSubject").innerText = escapeHtml(
+        detail.title || detail.subject || "-",
+      );
+      document.getElementById("mDept").innerText =
+        `${deptTxt} • Status: ${currentStatus}`;
+
+      // Render detail info
+      const detailContent = document.getElementById("modalDetailContent");
+      detailContent.innerHTML =
+        `
+        <div style="margin-bottom: 20px;">
+          <h4 id="mSubject" style="font-size: 18px; font-weight: 700; color: #333;">` +
+        escapeHtml(detail.title || detail.subject || "-") +
+        `</h4>
+          <p id="mDept" style="color: #666; font-size: 13px;">${deptTxt} • Status: ${currentStatus}</p>
+        </div>
+        
+        <div style="margin-bottom: 20px; background: #f9f9f9; padding: 15px; border-radius: 8px;">
+          <div style="margin-bottom: 12px;">
+            <label style="font-size: 12px; color: #666; font-weight: 600;">Pengaju</label>
+            <div style="font-size: 14px; color: #333; font-weight: 500;">${requesterName}</div>
+          </div>
+          <div style="margin-bottom: 12px;">
+            <label style="font-size: 12px; color: #666; font-weight: 600;">Departemen</label>
+            <div style="font-size: 14px; color: #333; font-weight: 500;">${deptTxt}</div>
+          </div>
+          <div>
+            <label style="font-size: 12px; color: #666; font-weight: 600;">Teknisi Ditugaskan</label>
+            <div style="font-size: 14px; color: #333; font-weight: 500;">${technicianName}</div>
+          </div>
+        </div>
+
+        <div class="detail-group">
+          <label class="detail-label">Riwayat Perjalanan</label>
+          <div class="timeline" id="mTimeline" style="margin-top: 10px;"></div>
+        </div>
+
+        <div class="detail-group" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e9e9e9;">
+          <div style="display: flex; gap: 10px;">
+            <button id="rejectBtn" class="btn-reject" ${!isResolved ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ""} 
+              onclick="window.rejectTicket(${detail.id})" title="${!isResolved ? "Hanya bisa reject jika status RESOLVED" : "Reject dan buat OPEN kembali"}">
+              <i class="fa-solid fa-times"></i> Reject
+            </button>
+            <button id="closeBtn" class="btn-close" ${!isResolved ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ""}
+              onclick="window.closeTicket(${detail.id})" title="${!isResolved ? "Hanya bisa close jika status RESOLVED" : "Tutup tiket"}">
+              <i class="fa-solid fa-check"></i> Close
+            </button>
+          </div>
+        </div>
+      `;
+
+      // Render Timeline
+      const logs = detail.logs || detail.histories || [];
+      renderTimeline(logs, currentStatus);
+
+      // Store detail for action buttons
+      window._currentTicketDetail = detail;
     }
   };
 
-  function renderTimeline(logs) {
+  function renderTimeline(logs, currentStatus) {
     const container = document.getElementById("mTimeline");
-    if (!logs || logs.length === 0) {
-      container.innerHTML =
-        '<div style="color:#999; font-style:italic;">Belum ada riwayat.</div>';
-      return;
-    }
 
     let html = "";
-    logs
-      .sort((a, b) => (b.id || 0) - (a.id || 0))
-      .forEach((l) => {
-        const date = new Date(l.created_at || l.date).toLocaleString("id-ID");
-        html += `
-                <div class="timeline-item">
-                    <div class="timeline-dot"></div>
-                    <span class="timeline-date">${date}</span>
-                    <div class="timeline-content">
-                        <strong>${l.status || l.action || "Update"}</strong>
-                        <div style="margin-top:4px; color:#666;">${l.note || l.message || l.description || ""}</div>
-                    </div>
-                </div>
-            `;
+
+    if (!logs || logs.length === 0) {
+      html =
+        '<div style="color:#999; font-style:italic; padding: 15px; text-align: center;">Belum ada riwayat detail tersedia.</div>';
+    } else {
+      // Sort logs by date ascending
+      const sortedLogs = [...logs].sort((a, b) => {
+        const dateA = new Date(a.created_at || a.date || 0).getTime();
+        const dateB = new Date(b.created_at || b.date || 0).getTime();
+        return dateA - dateB;
       });
+
+      sortedLogs.forEach((l) => {
+        const logStatus = (
+          l.status?.name ||
+          l.status ||
+          l.action ||
+          "Update"
+        ).toUpperCase();
+        const date = new Date(l.created_at || l.date);
+        const dateStr = date.toLocaleDateString("id-ID", {
+          weekday: "short",
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
+        const timeStr = date.toLocaleTimeString("id-ID", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        // Color code for different statuses
+        let statusColor = "#999";
+        if (logStatus.includes("OPEN")) statusColor = "#1976d2";
+        else if (logStatus.includes("ASSIGNED")) statusColor = "#f57c00";
+        else if (logStatus.includes("PROGRESS")) statusColor = "#7b1fa2";
+        else if (logStatus.includes("RESOLVED")) statusColor = "#388e3c";
+        else if (logStatus.includes("CLOSED")) statusColor = "#424242";
+
+        html += `
+          <div class="timeline-item" style="margin-bottom: 15px; padding-left: 30px; position: relative;">
+            <div style="position: absolute; left: 0; top: 3px; width: 12px; height: 12px; background-color: ${statusColor}; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 2px ${statusColor};\"></div>
+            <div>
+              <div style="font-weight: 600; color: ${statusColor}; font-size: 13px;">${logStatus}</div>
+              <div style="font-size: 12px; color: #999; margin-top: 3px;">${dateStr} • ${timeStr}</div>
+              <div style="margin-top: 6px; color: #666; font-size: 13px;">${escapeHtml(l.note || l.message || l.description || "")}</div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
     container.innerHTML = html;
   }
 
   window.closeModal = function () {
     document.getElementById("detailModal").style.display = "none";
+  };
+
+  window.rejectTicket = async function (ticketId) {
+    const detail = window._currentTicketDetail;
+    if (!detail) return;
+
+    const currentStatus = detail.status?.name || detail.status || "";
+    if (currentStatus.toUpperCase() !== "RESOLVED") {
+      alert("Tiket hanya bisa di-reject jika status RESOLVED");
+      return;
+    }
+
+    if (
+      !confirm(
+        `Yakin ingin reject tiket #${detail.ticket_number}? Tiket akan kembali ke status OPEN.`,
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const res = await fetchWithAuth(
+        `${API_URL}/api/tickets/${ticketId}/reject`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      if (res && res.ok) {
+        alert("Tiket berhasil di-reject dan kembali ke status OPEN");
+        closeModal();
+        loadTickets();
+      } else {
+        alert("Gagal reject tiket");
+      }
+    } catch (e) {
+      console.error("Reject error:", e);
+      alert("Error: " + e.message);
+    }
+  };
+
+  window.closeTicket = async function (ticketId) {
+    const detail = window._currentTicketDetail;
+    if (!detail) return;
+
+    const currentStatus = detail.status?.name || detail.status || "";
+    if (currentStatus.toUpperCase() !== "RESOLVED") {
+      alert("Tiket hanya bisa di-close jika status RESOLVED");
+      return;
+    }
+
+    if (!confirm(`Yakin ingin close tiket #${detail.ticket_number}?`)) {
+      return;
+    }
+
+    try {
+      const res = await fetchWithAuth(
+        `${API_URL}/api/tickets/${ticketId}/close`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      if (res && res.ok) {
+        alert("Tiket berhasil di-close");
+        closeModal();
+        loadTickets();
+      } else {
+        alert("Gagal close tiket");
+      }
+    } catch (e) {
+      console.error("Close error:", e);
+      alert("Error: " + e.message);
+    }
   };
 
   window.onclick = function (e) {

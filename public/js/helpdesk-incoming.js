@@ -87,10 +87,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // Filter: Status Open + Not Assigned
       tickets = tickets.filter((t) => {
-        const status = (t.status?.name || t.status || "").toLowerCase();
+        const statusVal = t.status?.name || t.status || "";
+        const status = (
+          typeof statusVal === "string" ? statusVal : ""
+        ).toLowerCase();
         const isAssigned = t.assignment || t.assigned_to || t.technician_id;
         return (status === "open" || status === "new") && !isAssigned;
       });
+
+      // Always update badge count (even if 0)
+      updateBadgeCount(tickets.length);
+      // Also trigger global badge update for sidebar
+      if (window.updateOpenUnassignedCount) {
+        window.updateOpenUnassignedCount();
+      }
 
       if (tickets.length === 0) {
         ticketsBody.innerHTML =
@@ -101,20 +111,79 @@ document.addEventListener("DOMContentLoaded", function () {
 
       ticketsBody.innerHTML = tickets.map(renderTicketRow).join("");
 
-      // Update badge counts
-      updateBadgeCount(tickets.length);
-
-      // Bind assign buttons
-      document.querySelectorAll(".btn-assign").forEach((btn) => {
-        btn.addEventListener("click", function () {
-          openAssignModal(this.dataset.ticketId, this.dataset.subject);
+      // Bind assign buttons only (use selector that excludes refresh button)
+      document
+        .querySelectorAll("button.btn-assign[data-ticket-id]")
+        .forEach((btn) => {
+          btn.addEventListener("click", function () {
+            openAssignModal(this.dataset.ticketId, this.dataset.subject);
+          });
         });
-      });
 
       renderPagination(meta, tickets.length);
 
-      // Async update details (requester dept, etc)
-      tickets.forEach((t) => updateRequesterDetails(t));
+      // Fetch full ticket details to populate requester & department
+      Promise.all(
+        tickets.map((t) =>
+          fetchWithAuth(`${API_URL}/api/tickets/${t.id}`)
+            .then((r) => (r && r.ok ? r.json() : null))
+            .then(async (json) => {
+              if (!json) return;
+              const ticket = json.data || json.ticket || json;
+
+              // Log first ticket for debugging
+              if (tickets.indexOf(t) === 0) {
+                console.log("📌 First ticket detail structure:", {
+                  id: ticket.id,
+                  requester_name: ticket.requester?.name,
+                  requester_department: ticket.requester?.department?.name,
+                  ticket_department: ticket.department?.name,
+                });
+              }
+
+              // Update requester name in DOM
+              const reqEl = document.getElementById(`req-${t.id}`);
+              if (reqEl && ticket.requester?.name) {
+                reqEl.innerText = escapeHtml(ticket.requester.name);
+              }
+              // Update department in DOM with multiple fallback paths
+              const deptEl = document.getElementById(`dept-${t.id}`);
+              if (deptEl) {
+                let deptName =
+                  ticket.requester?.department?.name ||
+                  ticket.department?.name ||
+                  ticket.requester?.departemen ||
+                  ticket.departemen ||
+                  null;
+
+                // If department still not found, fetch user detail
+                if (!deptName && ticket.requester?.id) {
+                  try {
+                    const userRes = await fetchWithAuth(
+                      `${API_URL}/api/users/${ticket.requester.id}`,
+                    );
+                    if (userRes && userRes.ok) {
+                      const userData = await userRes.json();
+                      const user = userData.data || userData.user || userData;
+                      deptName =
+                        user.department?.name || user.departemen || null;
+                      console.log(
+                        `✨ Fetched user dept for ${t.id}:`,
+                        deptName,
+                      );
+                    }
+                  } catch (e) {
+                    console.warn("Failed to fetch user for department", e);
+                  }
+                }
+                deptEl.innerText = escapeHtml(deptName || "-");
+              }
+            })
+            .catch((e) =>
+              console.warn(`Failed to fetch detail for ticket ${t.id}`, e),
+            ),
+        ),
+      ).catch((e) => console.warn("Promise.all error", e));
     } catch (err) {
       console.error("Error loading tickets", err);
       ticketsBody.innerHTML =
@@ -179,26 +248,38 @@ document.addEventListener("DOMContentLoaded", function () {
   // --- MODAL & LOGIC ---
 
   function openAssignModal(id, subject) {
-    modalTicketId.innerText = "#" + id;
-    modalTicketSubject.innerText = subject;
     modalTicketIdInput.value = id;
+    modalTicketSubject.innerText = subject;
     assignModal.style.display = "flex";
 
     document.getElementById("modalAssignedTo").innerText =
       "Requester: Loading...";
 
-    // Load tech list
-    loadTechnicians();
-
-    // Fetch detail to show requester in modal
+    // Fetch ticket detail to get ticket_number and requester
     fetchWithAuth(`${API_URL}/api/tickets/${id}`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r || !r.ok) throw new Error("Detail fetch failed");
+        return r.json();
+      })
       .then((json) => {
         const t = json.data || json.ticket || json;
+        const ticketNum = t.ticket_number || `#${t.id}`;
         const rName = t.requester?.name || t.requester_name || "-";
+        modalTicketId.innerText = ticketNum;
         document.getElementById("modalAssignedTo").innerText =
           `Requester: ${rName}`;
+        // Preselect tech if already assigned
+        if (t.assignment?.technician?.id && _techniciansCache) {
+          techSelect.value = t.assignment.technician.id;
+        }
+      })
+      .catch((e) => {
+        console.warn("Detail fetch error", e);
+        modalTicketId.innerText = `#${id}`;
       });
+
+    // Load tech list
+    loadTechnicians();
   }
 
   function closeAssignModal() {
@@ -213,24 +294,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
     techLoading.style.display = "block";
     try {
-      // Assuming endpoint exists for technicians
-      const res = await fetchWithAuth(`${API_URL}/api/users?role=technician`); // Adjust endpoint if needed
-      // Fallback if specific endpoint doesn't exist, you might need to filter all users
+      const res = await fetchWithAuth(
+        `${API_URL}/api/users/by-role/technician`,
+      );
+      if (!res || !res.ok) throw new Error("Gagal fetch teknisi");
 
-      if (res && res.ok) {
-        const json = await res.json();
-        let users = json.data || (Array.isArray(json) ? json : []);
-        // Filter if endpoint returns all users
-        users = users.filter(
-          (u) =>
-            (u.roles && u.roles.includes("technician")) ||
-            u.role === "technician",
-        );
-        _techniciansCache = users;
-        populateTechSelect(users);
-      }
+      const json = await res.json();
+      let users = json.data || (Array.isArray(json) ? json : []);
+      _techniciansCache = users;
+      populateTechSelect(users);
     } catch (e) {
-      techSelect.innerHTML = '<option value="">Gagal memuat</option>';
+      console.warn("Technician load error", e);
+      techSelect.innerHTML = '<option value="">Gagal memuat teknisi</option>';
     } finally {
       techLoading.style.display = "none";
     }
@@ -289,42 +364,53 @@ document.addEventListener("DOMContentLoaded", function () {
   // --- HELPERS ---
 
   async function updateRequesterDetails(ticket) {
-    // If dept is missing in list, try to fetch user detail
+    const reqEl = document.getElementById(`req-${ticket.id}`);
     const deptEl = document.getElementById(`dept-${ticket.id}`);
-    if (!deptEl || deptEl.innerText !== "-") return;
 
-    if (ticket.requester?.department?.name) {
-      deptEl.innerText = ticket.requester.department.name;
+    // Try to fill from ticket data first
+    if (reqEl && ticket.requester?.name) {
+      reqEl.innerText = escapeHtml(ticket.requester.name);
+    }
+    if (deptEl && ticket.requester?.department?.name) {
+      deptEl.innerText = escapeHtml(ticket.requester.department.name);
       return;
     }
 
-    // If we have requester ID but no dept details, fetch user
+    // If still missing, fetch user detail
     if (ticket.requester?.id) {
-      if (_userCache.has(ticket.requester.id)) {
-        const u = _userCache.get(ticket.requester.id);
-        if (u.department?.name) deptEl.innerText = u.department.name;
-      } else {
-        try {
+      try {
+        if (_userCache.has(ticket.requester.id)) {
+          const u = _userCache.get(ticket.requester.id);
+          if (reqEl && u.name) reqEl.innerText = escapeHtml(u.name);
+          if (deptEl && u.department?.name)
+            deptEl.innerText = escapeHtml(u.department.name);
+        } else {
           const res = await fetchWithAuth(
             `${API_URL}/api/users/${ticket.requester.id}`,
           );
-          if (res.ok) {
+          if (res && res.ok) {
             const json = await res.json();
-            const u = json.data || json.user;
+            const u = json.data || json.user || json;
             _userCache.set(ticket.requester.id, u);
-            if (u.department?.name) deptEl.innerText = u.department.name;
+            if (reqEl && u.name) reqEl.innerText = escapeHtml(u.name);
+            if (deptEl && u.department?.name)
+              deptEl.innerText = escapeHtml(u.department.name);
           }
-        } catch (e) {}
+        }
+      } catch (e) {
+        console.warn("User detail fetch error", e);
       }
     }
   }
 
   function updateBadgeCount(count) {
     const badge = document.querySelector(".alert-badge span");
-    if (badge) badge.innerText = `${count} Tiket Perlu Tindakan`;
+    if (badge) {
+      badge.innerText = `${count} Tiket Perlu Tindakan`;
+    }
 
     // Also update sidebar badge if present
-    const sbBadge = document.getElementById("pendingCount");
+    const sbBadge = document.querySelector(".menu-badge");
     if (sbBadge) {
       sbBadge.innerText = count;
       sbBadge.style.display = count > 0 ? "inline-block" : "none";

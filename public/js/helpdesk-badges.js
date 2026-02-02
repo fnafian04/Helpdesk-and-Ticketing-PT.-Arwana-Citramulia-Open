@@ -23,9 +23,12 @@ window.updateOpenUnassignedCount = async function () {
     if (alertSpan)
       alertSpan.innerText = `${unassignedCount} Tiket Perlu Tindakan`;
 
-    // update sidebar badge
+    // update sidebar badge (show/hide based on count)
     const menuBadge = document.querySelector(".menu-badge");
-    if (menuBadge) menuBadge.innerText = `${unassignedCount}`;
+    if (menuBadge) {
+      menuBadge.innerText = `${unassignedCount}`;
+      menuBadge.style.display = unassignedCount > 0 ? "inline-block" : "none";
+    }
 
     return unassignedCount;
   } catch (e) {

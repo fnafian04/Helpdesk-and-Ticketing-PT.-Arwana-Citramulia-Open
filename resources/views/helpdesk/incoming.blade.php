@@ -17,7 +17,8 @@
                 <i class="fa-solid fa-bell"></i>
                 <span>0 Tiket Perlu Tindakan</span>
             </div>
-            <button id="refreshTicketsBtn" class="btn-assign" style="background:#fff; border:1px solid #e9e9e9; color:#333; padding:8px 12px;" title="Refresh">
+            <button id="refreshTicketsBtn" class="btn-icon" title="Refresh"
+                style="background:#fff; border:1px solid #e9e9e9; color:#333;">
                 <i class="fa-solid fa-arrows-rotate"></i>
             </button>
         </div>
@@ -35,7 +36,7 @@
                 </tr>
             </thead>
             <tbody id="ticketsBody">
-                </tbody>
+            </tbody>
         </table>
         <div id="ticketsPagination" style="margin-top:16px; display:flex; justify-content:flex-end; gap:8px;"></div>
     </div>
@@ -44,19 +45,23 @@
         <div class="modal-box">
             <h3 style="margin-bottom:20px; font-size: 18px; font-weight: 700;">Assign Teknisi</h3>
 
-            <div style="margin-bottom:24px; background:#fff5f5; padding:18px; border-radius:10px; border: 1px solid #ffcdd2;">
+            <div
+                style="margin-bottom:24px; background:#fff5f5; padding:18px; border-radius:10px; border: 1px solid #ffcdd2;">
                 <div style="font-size: 12px; color: #d62828; font-weight: 600;" id="modalTicketId">#ID</div>
-                <div style="font-weight: 700; font-size: 15px; color: #333; margin-top: 3px;" id="modalTicketSubject">Subject</div>
+                <div style="font-weight: 700; font-size: 15px; color: #333; margin-top: 3px;" id="modalTicketSubject">
+                    Subject</div>
                 <div id="modalAssignedTo" style="margin-top:12px; font-size:13px; color:#333;">Requester: -</div>
             </div>
 
             <div style="margin-bottom: 10px;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: #555;">Pilih Teknisi:</label>
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: #555;">Pilih
+                    Teknisi:</label>
                 <input type="hidden" id="modalTicketIdInput" value="">
                 <select class="form-select" id="technicianSelect">
                     <option value="">-- Memuat teknisi... --</option>
                 </select>
-                <div id="technicianLoading" style="display:none; font-size:12px; color:#666; margin-top:6px;">Memuat daftar teknisi...</div>
+                <div id="technicianLoading" style="display:none; font-size:12px; color:#666; margin-top:6px;">Memuat daftar
+                    teknisi...</div>
             </div>
 
             <div class="modal-footer">
