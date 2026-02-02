@@ -20,13 +20,14 @@ class MasterAdminDashboard
         return [
             'summary' => $this->getSummary(),
             'ticket_trend' => $this->getTicketTrend(),
+            'role_distribution' => $this->getRoleDistribution(),
             'category_distribution' => $this->getCategoryDistribution(),
             'latest_tickets' => $this->getLatestTickets(),
         ];
     }
 
     /**
-     * Get summary data: users, technicians, tickets this month, departments
+     * Get summary data: users, active technicians, tickets this month, departments
      */
     private function getSummary(): array
     {
@@ -34,7 +35,7 @@ class MasterAdminDashboard
 
         return [
             'users' => User::count(),
-            'technicians' => User::role('technician')->count(),
+            'technicians' => User::role('technician')->where('is_active', true)->count(),
             'tickets_month' => Ticket::whereMonth('created_at', $currentMonth->month)
                 ->whereYear('created_at', $currentMonth->year)
                 ->count(),
@@ -43,25 +44,56 @@ class MasterAdminDashboard
     }
 
     /**
-     * Get ticket trend for last 7 days
+     * Get ticket trend for last 7 days with incoming and solved counts
      */
     private function getTicketTrend(): array
     {
         $trend = [];
         $today = Carbon::now();
+        $closedStatusId = TicketStatus::where('name', 'Closed')->value('id') ?? 5;
 
         for ($i = 6; $i >= 0; $i--) {
             $date = $today->copy()->subDays($i);
-            $count = Ticket::whereDate('created_at', $date->toDateString())->count();
+            $dateString = $date->toDateString();
+            
+            // Incoming tickets (created on this date)
+            $incoming = Ticket::whereDate('created_at', $dateString)->count();
+            
+            // Solved tickets (closed on this date)
+            $solved = Ticket::whereDate('updated_at', $dateString)
+                ->where('status_id', $closedStatusId)
+                ->count();
 
             $trend[] = [
                 'date' => $date->format('Y-m-d'),
                 'day_name' => $date->format('l'), // Monday, Tuesday, etc.
-                'count' => $count,
+                'incoming' => $incoming,
+                'solved' => $solved,
             ];
         }
 
         return $trend;
+    }
+
+    /**
+     * Get role distribution across all users
+     */
+    private function getRoleDistribution(): array
+    {
+        $roles = [
+            'master_admin' => 'master-admin',
+            'supervisor' => 'supervisor',
+            'helpdesk' => 'helpdesk',
+            'technician' => 'technician',
+            'requester' => 'requester',
+        ];
+
+        $distribution = [];
+        foreach ($roles as $key => $roleName) {
+            $distribution[$key] = User::role($roleName)->count();
+        }
+
+        return $distribution;
     }
 
     /**

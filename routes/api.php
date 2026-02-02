@@ -37,7 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
 // ============================================================================
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->middleware('role:master-admin');
+        ->middleware('role:master-admin|supervisor|helpdesk|technician|requester');
 });
 
 // ============================================================================
