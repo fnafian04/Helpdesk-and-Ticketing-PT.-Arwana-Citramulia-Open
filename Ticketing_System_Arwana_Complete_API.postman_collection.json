@@ -742,6 +742,27 @@
           "response": []
         },
         {
+          "name": "Get Active Technicians",
+          "id": "e901ab84-6e91-4615-bbdc-0643f8b791b8",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/technicians/active",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "technicians",
+                "active"
+              ]
+            },
+            "description": "Mendapatkan daftar teknisi yang berstatus aktif saja.\n\nRole: Master Admin & Helpdesk\n\nResponse:\n- id: User ID\n- name: Nama teknisi\n- email: Email address\n- phone: Nomor telepon\n- department: Department info (id, name)\n- is_active: Status aktif (always true)\n- created_at: Tanggal pembuatan akun\n- count: Total active technicians\n\nGunakan endpoint ini untuk:\n- Dropdown teknisi saat assign tiket\n- Dashboard menampilkan jumlah teknisi aktif\n- List teknisi yang tersedia"
+          },
+          "response": []
+        },
+        {
           "name": "Create User",
           "id": "18838449-179d-4e0e-877c-517976710ce4",
           "request": {
@@ -1248,37 +1269,37 @@
   },
   "variable": [
     {
-      "id": "ce315ba4-a0d8-4823-af24-2d1570f6c13a",
+      "id": "8d373d12-28b8-47f0-b98d-f17647e698db",
       "key": "base_url",
       "value": "http://localhost:8000",
       "type": "string"
     },
     {
-      "id": "3a600f4b-25ff-4e60-ab9c-51087302d3fd",
+      "id": "33f860f2-aefa-42ac-8ab2-70b3a4ad00d5",
       "key": "auth_token",
       "value": "",
       "type": "string"
     },
     {
-      "id": "f5b7716a-6a46-4fec-8bdd-ef14d504e6a4",
+      "id": "6889f7de-879e-4852-8779-951e91a2b860",
       "key": "user_id",
       "value": "",
       "type": "string"
     },
     {
-      "id": "8997a4a6-94d7-4657-8965-d742cbb15223",
+      "id": "5faee8bf-39ff-4b92-abe9-f7b04410753c",
       "key": "ticket_id",
       "value": "1",
       "type": "string"
     },
     {
-      "id": "3b1e4dd3-cf2b-469e-ab63-5132799b3acb",
+      "id": "0a128561-be5b-41cf-818d-0c96d2969873",
       "key": "master_admin_email",
       "value": "admin@arwana.com",
       "type": "string"
     },
     {
-      "id": "18ce17c3-59a4-4ff8-93fc-b1c334b67d92",
+      "id": "7220630d-bebe-4338-95c7-dd0168083926",
       "key": "master_admin_password",
       "value": "password123",
       "type": "string"

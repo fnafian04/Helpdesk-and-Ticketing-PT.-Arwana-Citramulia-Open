@@ -315,4 +315,41 @@ class UserManagementController extends Controller
             ]
         ]);
     }
+
+    /**
+     * Get active technicians only
+     * GET /api/technicians/active
+     * Permission: master-admin, helpdesk
+     */
+    public function getActiveTechnicians(Request $request)
+    {
+        $this->checkCanViewUsers($request->user());
+
+        $technicians = User::role('technician')
+            ->where('is_active', true)
+            ->select('id', 'name', 'email', 'phone', 'department_id', 'is_active', 'created_at')
+            ->with('department:id,name')
+            ->orderBy('name')
+            ->get()
+            ->map(function ($technician) {
+                return [
+                    'id' => $technician->id,
+                    'name' => $technician->name,
+                    'email' => $technician->email,
+                    'phone' => $technician->phone,
+                    'department' => $technician->department ? [
+                        'id' => $technician->department->id,
+                        'name' => $technician->department->name,
+                    ] : null,
+                    'is_active' => $technician->is_active,
+                    'created_at' => $technician->created_at->format('Y-m-d H:i:s'),
+                ];
+            });
+
+        return response()->json([
+            'message' => 'Active technicians retrieved successfully',
+            'data' => $technicians,
+            'count' => $technicians->count(),
+        ]);
+    }
 }
