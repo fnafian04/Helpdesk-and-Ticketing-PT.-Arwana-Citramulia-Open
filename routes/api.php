@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\TicketController;
 use App\Http\Controllers\Api\UserManagementController;
 use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,6 +30,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', fn(Request $request) => $request->user());
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
+});
+
+// ============================================================================
+// DASHBOARD ROUTES
+// ============================================================================
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->middleware('role:master-admin');
 });
 
 // ============================================================================
