@@ -4,6 +4,28 @@
     return sessionStorage.getItem("auth_token") || localStorage.getItem("auth_token");
   }
 
+  // Helper function to check token and handle auth errors
+  function ensureAuthenticated(operation = "Operation") {
+    const token = getAuthToken();
+    if (!token) {
+      console.warn(`${operation}: No auth token found. Redirecting to login...`);
+      window.location.href = '/login';
+      return null;
+    }
+    return token;
+  }
+
+  // Helper function to handle API errors
+  function handleApiError(response, context = "API Call") {
+    if (response.status === 401) {
+      console.warn(`${context}: Token invalid or expired. Clearing auth and redirecting to login...`);
+      TokenManager.clearAuth();
+      window.location.href = '/login';
+      return true; // Indicates auth error
+    }
+    return false;
+  }
+
   // Pagination state
   let currentPage = 1;
   let currentPerPage = 15;
@@ -66,19 +88,33 @@
     }
     currentPage = page;
 
+    // Check if token exists
+    const token = getAuthToken();
+    if (!token) {
+      console.warn('No auth token found. Redirecting to login...');
+      window.location.href = '/login';
+      return;
+    }
+
     try {
       const response = await fetch(
         `${API_URL}/api/users?page=${page}&per_page=${perPage}`,
         {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${getAuthToken()}`,
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         },
       );
 
       if (!response.ok) {
+        if (response.status === 401) {
+          console.warn('Token invalid or expired. Clearing auth and redirecting to login...');
+          TokenManager.clearAuth();
+          window.location.href = '/login';
+          return;
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -94,6 +130,7 @@
                     <td colspan="5" style="text-align: center; padding: 40px; color: #d62828;">
                         <i class="fa-solid fa-exclamation-circle" style="font-size: 24px;"></i>
                         <p style="margin-top: 10px;">Gagal memuat data pengguna</p>
+                        <small style="color: #999;">Silakan refresh halaman atau login ulang</small>
                     </td>
                 </tr>
             `;
@@ -321,6 +358,9 @@
   };
 
   window.toggleStatus = function (id, name, currentStatus) {
+    // Check authentication
+    if (!ensureAuthenticated("Toggle Status")) return;
+
     let isDeactivating = currentStatus === "active";
     let titleText = isDeactivating ? "Nonaktifkan User?" : "Aktifkan Kembali?";
     let bodyText = isDeactivating
@@ -399,6 +439,9 @@
   function handleSaveForm(e) {
     e.preventDefault();
 
+    // Check authentication
+    if (!ensureAuthenticated("Save User")) return;
+
     const name = document.getElementById("uName").value;
     const email = document.getElementById("uEmail").value;
     const phone = document.getElementById("uPhone").value;
@@ -463,6 +506,8 @@
             },
           );
 
+          if (handleApiError(response, "Update User")) return;
+
           const result = await response.json();
           if (!response.ok) {
             if (result.errors) {
@@ -490,6 +535,8 @@
                   body: JSON.stringify({ password: password }),
                 },
               );
+
+              if (handleApiError(resetResponse, "Reset Password")) return;
 
               const resetResult = await resetResponse.json();
               if (!resetResponse.ok) {
@@ -538,6 +585,8 @@
               roles: [role],
             }),
           });
+
+          if (handleApiError(response, "Create User")) return;
 
           const result = await response.json();
           if (!response.ok) {
