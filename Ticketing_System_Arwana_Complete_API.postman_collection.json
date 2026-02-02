@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "aeeeb612-22c1-4c93-abaf-22ccce771097",
     "name": "Ticketing System Arwana - Complete API Collection",
-    "description": "Complete API collection untuk Ticketing System PT Arwana.\n\nIncludes:\n- Authentication (Register, Login, Logout, Me, Get Own Profile)\n- Dashboard (Master Admin, Helpdesk, Technician, Requester)\n- Ticket Management (Create, List, View, Assign, Confirm, Reject, Solve, Unresolve, Close)\n- My Tickets & History (Get Own Tickets, View Completion History, View Technician Resolved Tickets)\n- User Management - Master Admin (List, View, Create, Update, Reset Password)\n- User Access Control (Get by Role, Roles Summary)\n- Department Management (List, Create, Update, Delete)\n- Category Management (List, Create, Update, Delete)\n\nSetup:\n1. Login untuk dapatkan token\n2. Set token di collection variable 'auth_token'\n3. Token akan otomatis digunakan di semua request yang membutuhkan auth",
+    "description": "Complete API collection untuk Ticketing System PT Arwana.\n\nIncludes:\n- Authentication (Register, Login, Logout, Me, Get Own Profile)\n- Ticket Management (Create, List, View, Assign, Confirm, Reject, Solve, Unresolve, Close)\n- My Tickets & History (Get Own Tickets, View Completion History, View Technician Resolved Tickets)\n- User Management - Master Admin (List, View, Create, Update, Reset Password)\n- User Access Control (Get by Role, Roles Summary)\n- Department Management (List, Create, Update, Delete)\n- Category Management (List, Create, Update, Delete)\n\nSetup:\n1. Login untuk dapatkan token\n2. Set token di collection variable 'auth_token'\n3. Token akan otomatis digunakan di semua request yang membutuhkan auth",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -234,94 +234,7 @@
       "description": "Endpoint untuk authentication:\n- Register user baru\n- Login (email atau phone)\n- Get current user info\n- Logout"
     },
     {
-      "name": "2. Dashboard",
-      "item": [
-        {
-          "name": "Master Admin Dashboard",
-          "id": "dash-001-master-admin",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/dashboard",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "dashboard"
-              ]
-            },
-            "description": "Dashboard untuk Master Admin.\n\nRole: master-admin\n\nResponse:\n- summary: users, technicians (active only), tickets_month, departments\n- ticket_trend: 7 days with incoming/solved counts\n- role_distribution: user count per role\n- category_distribution: ticket distribution by category\n- latest_tickets: 5 most recent tickets with full details"
-          },
-          "response": []
-        },
-        {
-          "name": "Helpdesk Dashboard",
-          "id": "dash-002-helpdesk",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/dashboard",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "dashboard"
-              ]
-            },
-            "description": "Dashboard untuk Helpdesk.\n\nRole: helpdesk\n\nResponse:\n- summary:\n  * this_week: Tickets created this week\n  * technicians: Active technicians count\n  * unassigned: Unassigned tickets count\n  * assigned_today: Tickets assigned today\n- unassigned_tickets: List of tickets not yet assigned to technician"
-          },
-          "response": []
-        },
-        {
-          "name": "Technician Dashboard",
-          "id": "dash-003-technician",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/dashboard",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "dashboard"
-              ]
-            },
-            "description": "Dashboard untuk Technician.\n\nRole: technician\n\nResponse:\n- summary:\n  * total: Total tickets resolved by this technician (from history)\n  * assigned: Currently assigned tickets\n  * in_progress: Tickets in progress\n  * solved_today: Tickets solved today\n- my_tickets: Tickets assigned to this technician (excluding Closed status)"
-          },
-          "response": []
-        },
-        {
-          "name": "Requester Dashboard",
-          "id": "dash-004-requester",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/dashboard",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "dashboard"
-              ]
-            },
-            "description": "Dashboard untuk Requester.\n\nRole: requester\n\nResponse:\n- summary:\n  * total: Total tickets created\n  * open: Open tickets\n  * process: Tickets in process (Assigned + In Progress)\n  * solved: Solved tickets (Resolved + Closed)\n- my_tickets: Last 5 tickets with full details (status, category, requester, assignment)"
-          },
-          "response": []
-        }
-      ],
-      "id": "dashboard-folder-main",
-      "description": "Dashboard endpoints untuk semua role:\n- Master Admin: Full analytics (summary, trends, distribution)\n- Helpdesk: Focus on unassigned tickets and assignment stats\n- Technician: Personal performance and assigned tickets\n- Requester: Own tickets overview and status tracking\n\nAuthorization: Role-based access control\nEndpoint: GET /api/dashboard (same endpoint, different data per role)"
-    },
-    {
-      "name": "3. Ticket Management",
+      "name": "2. Ticket Management",
       "item": [
         {
           "name": "Create Ticket",
@@ -693,7 +606,7 @@
       "description": "Endpoint untuk ticket management:\n\nWorkflow:\n1. Requester: Create ticket (status: Open)\n2. Helpdesk: Assign ticket ke technician (status: Assigned)\n3. Technician: Confirm atau Reject ticket\n   - Confirm: status → In Progress\n   - Reject: status → Open (assignment dihapus)\n4. Technician: Resolve ticket (status: Resolved)\n5. Helpdesk: Close atau Unresolve ticket\n   - Close: status → Closed (final)\n   - Unresolve: status → In Progress (untuk dicek ulang)\n\nEndpoints:\n- Create ticket\n- List tickets dengan filter\n- View ticket detail\n- Assign ke technician\n- Confirm ticket (technician)\n- Reject ticket (technician)\n- Resolve ticket (technician)\n- Unresolve ticket (helpdesk)\n- Close ticket (helpdesk)"
     },
     {
-      "name": "4. User Management",
+      "name": "3. User Management",
       "item": [
         {
           "name": "Get Available Roles",
@@ -987,7 +900,7 @@
       "description": "Endpoint untuk user management (Master Admin only):\n- List users\n- Get users by specific role\n- Get roles summary\n- Create user dengan role\n- Update user data & roles\n- Reset password\n\nProtection:\n- Master-admin user tidak bisa di-edit/reset"
     },
     {
-      "name": "5. Department Management",
+      "name": "4. Department Management",
       "item": [
         {
           "name": "List All Departments",
@@ -1142,7 +1055,7 @@
       "description": "Endpoint untuk department management:\n- List departments dengan pencarian (All roles)\n- Get department detail (All roles)\n- Create, Update, Delete departments (Admin & Helpdesk only)\n\nProtection:\n- GET: Semua user yang authenticated\n- POST/PUT/PATCH/DELETE: Hanya Admin & Helpdesk\n- Validasi: Nama departemen harus unique\n- Soft delete protection: Tidak bisa hapus departemen dengan user"
     },
     {
-      "name": "6. Category Management",
+      "name": "5. Category Management",
       "item": [
         {
           "name": "List All Categories",
@@ -1295,6 +1208,32 @@
       ],
       "id": "4d8246ca-bea5-41b2-9ddc-f3074ef542a3",
       "description": "Endpoint untuk category management (Manajemen Kategori Tiket):\n- List categories dengan pencarian (Public)\n- Get category detail (Public)\n- Create, Update, Delete categories (Admin & Helpdesk only)\n\nProtection:\n- GET: Public - tidak perlu auth\n- POST/PUT/PATCH/DELETE: Hanya Admin & Helpdesk\n- Validasi: Nama kategori harus unique\n- Soft delete protection: Tidak bisa hapus kategori dengan tiket\n\nUse Cases:\n- Master Admin & Helpdesk: Kelola daftar kategori tiket untuk sistem"
+    },
+    {
+      "name": "Get Dashboard Data",
+      "id": "ede52aee-0a5e-4296-a976-184905f28e1d",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/dashboard",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "dashboard"
+          ]
+        },
+        "description": "Mengambil semua kategori tiket dengan opsional pencarian.\n\nRole: Public (tidak perlu auth)\n\nQuery Parameters:\n- search (optional): Filter kategori berdasarkan nama atau deskripsi"
+      },
+      "response": []
     }
   ],
   "auth": {
@@ -1309,37 +1248,37 @@
   },
   "variable": [
     {
-      "id": "845dee24-4c20-499a-8f38-6bf780a749ab",
+      "id": "2b4b98d8-4496-421b-8a3e-c3dbd0f5c309",
       "key": "base_url",
       "value": "http://localhost:8000",
       "type": "string"
     },
     {
-      "id": "01861682-4798-42b2-89a3-1eb595675c82",
+      "id": "f94704d6-f9a0-4d58-a84d-16f018575f53",
       "key": "auth_token",
       "value": "",
       "type": "string"
     },
     {
-      "id": "eff0c1cf-4d22-4260-8cf1-4ec8d8936d91",
+      "id": "71233e5a-56ff-446e-b8c7-c288dd1d6793",
       "key": "user_id",
       "value": "",
       "type": "string"
     },
     {
-      "id": "8595f12d-3830-4dc7-b095-6f2ff2d0e198",
+      "id": "d5d86cc5-92a0-4a86-a664-b8ab78aaf46c",
       "key": "ticket_id",
       "value": "1",
       "type": "string"
     },
     {
-      "id": "608428f9-185b-468f-8245-da34f69b5936",
+      "id": "9e48192c-7db1-4389-9ab5-dcb1a720f1ff",
       "key": "master_admin_email",
       "value": "admin@arwana.com",
       "type": "string"
     },
     {
-      "id": "fb485386-c3ad-49ce-b6c5-f551b1479f04",
+      "id": "79914b9d-8736-458d-9e84-a5d528103f9e",
       "key": "master_admin_password",
       "value": "password123",
       "type": "string"

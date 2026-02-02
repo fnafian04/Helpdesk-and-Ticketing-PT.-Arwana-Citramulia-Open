@@ -1,0 +1,15 @@
+{
+  "workspace": {
+    "id": "77885006-7233-4b6c-8580-dc2036e298e2"
+  },
+  "entities": {
+    "environments": [],
+    "flows": [],
+    "globals": [],
+    "mocks": [],
+    "specs": [],
+    "collections": [
+      "..\\Ticketing_System_Arwana_Complete_API.postman_collection.json"
+    ]
+  }
+}
