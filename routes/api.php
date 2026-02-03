@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\TicketController;
 use App\Http\Controllers\Api\UserManagementController;
 use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,6 +30,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', fn(Request $request) => $request->user());
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
+});
+
+// ============================================================================
+// DASHBOARD ROUTES
+// ============================================================================
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->middleware('role:master-admin|supervisor|helpdesk|technician|requester');
 });
 
 // ============================================================================
@@ -78,8 +87,11 @@ Route::middleware('auth:sanctum')->group(function () {
 // GET Endpoints (Master Admin + Helpdesk)
 Route::middleware('auth:sanctum', 'permission:user.view')->group(function () {
     Route::get('/users/by-role/{roleName}', [UserManagementController::class, 'getUsersByRole']);
-    Route::get('/users/{user}', [UserManagementController::class, 'show']);
-    Route::get('/users/{user}/resolved-tickets', [UserManagementController::class, 'resolvedTickets']);
+    Route::get('/users/{user}', [UserManagementController::class, 'show'])
+        ->whereNumber('user');
+    Route::get('/users/{user}/resolved-tickets', [UserManagementController::class, 'resolvedTickets'])
+        ->whereNumber('user');
+    Route::get('/technicians/active', [UserManagementController::class, 'getActiveTechnicians']);
 });
 
 // POST/PUT/DELETE Endpoints (Master Admin Only)

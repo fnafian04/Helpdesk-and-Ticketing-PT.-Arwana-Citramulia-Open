@@ -19,156 +19,243 @@
         </div>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon bg-blue"><i class="fa-solid fa-users"></i></div>
-            <div class="stat-info">
-                <h3>120</h3>
-                <p>Total User</p>
-            </div>
+    <div id="dashboardContent">
+        <div class="loading">
+            <p>Loading dashboard data...</p>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon bg-green"><i class="fa-solid fa-screwdriver-wrench"></i></div>
-            <div class="stat-info">
-                <h3>8</h3>
-                <p>Teknisi Aktif</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon bg-orange"><i class="fa-solid fa-ticket"></i></div>
-            <div class="stat-info">
-                <h3>450</h3>
-                <p>Tiket Bulan Ini</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon bg-red"><i class="fa-solid fa-building"></i></div>
-            <div class="stat-info">
-                <h3>12</h3>
-                <p>Departemen</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="charts-wrapper">
-        <div class="chart-card">
-            <div class="chart-header">
-                <div class="chart-title">📈 Tren Tiket (7 Hari Terakhir)</div>
-            </div>
-            <canvas id="trendChart" style="height: 300px; width: 100%;"></canvas>
-        </div>
-
-        <div class="chart-card">
-            <div class="chart-header">
-                <div class="chart-title">📊 Kategori Masalah</div>
-            </div>
-            <canvas id="categoryChart" style="height: 250px; width: 100%;"></canvas>
-        </div>
-    </div>
-
-    <div class="recent-wrapper">
-        <div class="chart-header">
-            <div class="chart-title">🕒 5 Tiket Terbaru</div>
-            <a href="#" style="font-size: 12px; color: #1565c0; font-weight: 600;">Lihat Semua</a>
-        </div>
-        <table class="simple-table">
-            <thead>
-                <tr>
-                    <th>ID Tiket</th>
-                    <th>Judul Masalah</th>
-                    <th>User</th>
-                    <th>Status</th>
-                    <th>Tanggal</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>#T-2023001</td>
-                    <td>Printer Macet di HRD</td>
-                    <td>Budi Santoso</td>
-                    <td><span class="badge open">Process</span></td>
-                    <td>Hari ini, 10:00</td>
-                </tr>
-                <tr>
-                    <td>#T-2023002</td>
-                    <td>Wifi Lantai 2 Lemot</td>
-                    <td>Siti Aminah</td>
-                    <td><span class="badge closed">Selesai</span></td>
-                    <td>Kemarin, 14:30</td>
-                </tr>
-                <tr>
-                    <td>#T-2023003</td>
-                    <td>Install Ulang Windows</td>
-                    <td>Joko</td>
-                    <td><span class="badge open">Pending</span></td>
-                    <td>Kemarin, 09:15</td>
-                </tr>
-            </tbody>
-        </table>
     </div>
 @endsection
 
 @section('scripts')
     <script>
-        // 1. CHART TREN TIKET (Line Chart)
-        const ctxTrend = document.getElementById('trendChart').getContext('2d');
-        new Chart(ctxTrend, {
-            type: 'line',
-            data: {
-                labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
-                datasets: [{
-                        label: 'Tiket Masuk',
-                        data: [12, 19, 3, 5, 10, 3, 7],
-                        borderColor: '#1565c0',
-                        backgroundColor: 'rgba(21, 101, 192, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    },
-                    {
-                        label: 'Tiket Selesai',
-                        data: [10, 15, 5, 4, 8, 3, 6],
-                        borderColor: '#2e7d32',
-                        backgroundColor: 'transparent',
-                        tension: 0.4,
-                        borderDash: [5, 5]
+        // Fetch dashboard data from API
+        async function loadDashboard() {
+            try {
+                const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+                
+                const response = await fetch('{{ url("/api/dashboard") }}', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
+                });
 
-        // 2. CHART KATEGORI (Doughnut - Pindahan dari Report)
-        const ctxCat = document.getElementById('categoryChart').getContext('2d');
-        new Chart(ctxCat, {
-            type: 'doughnut',
-            data: {
-                labels: ['Hardware', 'Software', 'Network', 'Lainnya'],
-                datasets: [{
-                    data: [40, 35, 15, 10],
-                    backgroundColor: ['#d62828', '#1565c0', '#f57c00', '#757575'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
+
+                const result = await response.json();
+                const data = result.data;
+
+                // Build HTML
+                let html = `
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-blue"><i class="fa-solid fa-users"></i></div>
+                            <div class="stat-info">
+                                <h3>${data.summary.users}</h3>
+                                <p>Total User</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-green"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                            <div class="stat-info">
+                                <h3>${data.summary.technicians}</h3>
+                                <p>Teknisi Aktif</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-orange"><i class="fa-solid fa-ticket"></i></div>
+                            <div class="stat-info">
+                                <h3>${data.summary.tickets_month}</h3>
+                                <p>Tiket Bulan Ini</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon bg-red"><i class="fa-solid fa-building"></i></div>
+                            <div class="stat-info">
+                                <h3>${data.summary.departments}</h3>
+                                <p>Departemen</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-wrapper">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <div class="chart-title">📈 Tren Tiket (7 Hari Terakhir)</div>
+                            </div>
+                            <canvas id="trendChart" style="height: 300px; width: 100%;"></canvas>
+                        </div>
+
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <div class="chart-title">👥 Distribusi Role</div>
+                            </div>
+                            <div class="role-distribution">
+                                <div class="role-item">
+                                    <strong>Master Admin</strong>
+                                    <span>${data.role_distribution.master_admin}</span>
+                                </div>
+                                <div class="role-item">
+                                    <strong>Supervisor</strong>
+                                    <span>${data.role_distribution.supervisor}</span>
+                                </div>
+                                <div class="role-item">
+                                    <strong>Helpdesk</strong>
+                                    <span>${data.role_distribution.helpdesk}</span>
+                                </div>
+                                <div class="role-item">
+                                    <strong>Technician</strong>
+                                    <span>${data.role_distribution.technician}</span>
+                                </div>
+                                <div class="role-item">
+                                    <strong>Requester</strong>
+                                    <span>${data.role_distribution.requester}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-wrapper">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <div class="chart-title">📊 Kategori Masalah</div>
+                            </div>
+                            <canvas id="categoryChart" style="height: 250px; width: 100%;"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="recent-wrapper">
+                        <div class="chart-header">
+                            <div class="chart-title">🕒 5 Tiket Terbaru</div>
+                            <a href="/tickets" style="font-size: 12px; color: #1565c0; font-weight: 600;">Lihat Semua</a>
+                        </div>
+                        <table class="simple-table">
+                            <thead>
+                                <tr>
+                                    <th>ID Tiket</th>
+                                    <th>Judul Masalah</th>
+                                    <th>User</th>
+                                    <th>Kategori</th>
+                                    <th>Status</th>
+                                    <th>Tanggal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.latest_tickets.map(ticket => `
+                                    <tr>
+                                        <td><strong>${ticket.ticket_number}</strong></td>
+                                        <td>${ticket.subject.substring(0, 30)}${ticket.subject.length > 30 ? '...' : ''}</td>
+                                        <td>${ticket.requester?.name || 'Unknown'}</td>
+                                        <td>${ticket.category}</td>
+                                        <td><span class="badge ${getStatusBadgeClass(ticket.status)}">${ticket.status}</span></td>
+                                        <td>${new Date(ticket.created_at).toLocaleString('id-ID')}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                document.getElementById('dashboardContent').innerHTML = html;
+
+                // Initialize charts after content is rendered
+                initCharts(data);
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('dashboardContent').innerHTML = `
+                    <div class="error">
+                        <strong>Error!</strong> Gagal memuat dashboard data. ${error.message}
+                    </div>
+                `;
             }
+        }
+
+        function getStatusBadgeClass(status) {
+            const statusMap = {
+                'Open': 'open',
+                'Assigned': 'assigned',
+                'In Progress': 'in-progress',
+                'Resolved': 'resolved',
+                'Closed': 'closed'
+            };
+            return statusMap[status] || 'open';
+        }
+
+        function initCharts(data) {
+            // 1. CHART TREN TIKET (Line Chart)
+            const ctxTrend = document.getElementById('trendChart');
+            if (ctxTrend) {
+                new Chart(ctxTrend.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: data.ticket_trend.map(t => `${t.day_name.substring(0, 3)}\n${t.date.substring(5)}`),
+                        datasets: [{
+                                label: 'Tiket Masuk',
+                                data: data.ticket_trend.map(t => t.incoming),
+                                borderColor: '#1565c0',
+                                backgroundColor: 'rgba(21, 101, 192, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            },
+                            {
+                                label: 'Tiket Selesai',
+                                data: data.ticket_trend.map(t => t.solved),
+                                borderColor: '#2e7d32',
+                                backgroundColor: 'transparent',
+                                tension: 0.4,
+                                borderDash: [5, 5]
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 2. CHART KATEGORI (Doughnut)
+            const ctxCat = document.getElementById('categoryChart');
+            if (ctxCat) {
+                new Chart(ctxCat.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.category_distribution.map(c => c.name),
+                        datasets: [{
+                            data: data.category_distribution.map(c => c.percentage),
+                            backgroundColor: ['#d62828', '#1565c0', '#f57c00', '#757575', '#2e7d32'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Load dashboard on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboard();
         });
     </script>
 @endsection

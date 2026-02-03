@@ -1,19 +1,9 @@
 {
   "info": {
+    "_postman_id": "aeeeb612-22c1-4c93-abaf-22ccce771097",
     "name": "Ticketing System Arwana - Complete API Collection",
     "description": "Complete API collection untuk Ticketing System PT Arwana.\n\nIncludes:\n- Authentication (Register, Login, Logout, Me, Get Own Profile)\n- Ticket Management (Create, List, View, Assign, Confirm, Reject, Solve, Unresolve, Close)\n- My Tickets & History (Get Own Tickets, View Completion History, View Technician Resolved Tickets)\n- User Management - Master Admin (List, View, Create, Update, Reset Password)\n- User Access Control (Get by Role, Roles Summary)\n- Department Management (List, Create, Update, Delete)\n- Category Management (List, Create, Update, Delete)\n\nSetup:\n1. Login untuk dapatkan token\n2. Set token di collection variable 'auth_token'\n3. Token akan otomatis digunakan di semua request yang membutuhkan auth",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "ticketing-arwana"
-  },
-  "auth": {
-    "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{auth_token}}",
-        "type": "string"
-      }
-    ]
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
@@ -36,6 +26,7 @@
               }
             }
           ],
+          "id": "6555ea5f-4b6a-4795-83c9-c09180cb47a8",
           "request": {
             "auth": {
               "type": "noauth"
@@ -54,8 +45,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/register",
-              "host": ["{{base_url}}"],
-              "path": ["api", "register"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "register"
+              ]
             },
             "description": "Register user baru. Default role: requester.\n\nRequired:\n- name: Nama lengkap\n- email: Email unique\n- phone: Nomor telepon unique\n- password: Min 8 karakter\n- password_confirmation: Harus sama dengan password\n\nOptional:\n- department_id: ID department yang ada"
           },
@@ -79,6 +75,7 @@
               }
             }
           ],
+          "id": "65e33c2a-14b7-4764-a707-70a312949ac3",
           "request": {
             "auth": {
               "type": "noauth"
@@ -97,8 +94,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/login",
-              "host": ["{{base_url}}"],
-              "path": ["api", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "login"
+              ]
             },
             "description": "Login dengan email atau phone.\n\nField login bisa diisi dengan:\n- Email: user@example.com\n- Phone: 081234567890\n\nToken akan otomatis tersimpan di collection variable."
           },
@@ -122,6 +124,7 @@
               }
             }
           ],
+          "id": "4d2999e4-a002-4ab6-9d9d-4a74be6585d1",
           "request": {
             "auth": {
               "type": "noauth"
@@ -140,8 +143,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/login",
-              "host": ["{{base_url}}"],
-              "path": ["api", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "login"
+              ]
             },
             "description": "Login sebagai Master Admin untuk akses User Management.\n\nGunakan credential dari .env:\n- MASTER_ADMIN_EMAIL\n- MASTER_ADMIN_PASSWORD"
           },
@@ -149,13 +157,19 @@
         },
         {
           "name": "Get Current User (Me)",
+          "id": "4a1a68ef-39cd-4d4e-a711-8225780badd8",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/me",
-              "host": ["{{base_url}}"],
-              "path": ["api", "me"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "me"
+              ]
             },
             "description": "Mendapatkan informasi user yang sedang login.\n\nResponse:\n- User data\n- Roles\n- Permissions"
           },
@@ -163,13 +177,19 @@
         },
         {
           "name": "Get User Info",
+          "id": "0961c9ce-9033-4b5a-96ef-d7bea4c175a7",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/user",
-              "host": ["{{base_url}}"],
-              "path": ["api", "user"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "user"
+              ]
             },
             "description": "Alternative endpoint untuk mendapatkan user info (Laravel default)."
           },
@@ -191,19 +211,26 @@
               }
             }
           ],
+          "id": "f4eba9da-6dcf-41cb-8a0b-246b59ce9724",
           "request": {
             "method": "POST",
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/logout",
-              "host": ["{{base_url}}"],
-              "path": ["api", "logout"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "logout"
+              ]
             },
             "description": "Logout dan revoke current access token.\n\nToken akan dihapus dari collection variable."
           },
           "response": []
         }
       ],
+      "id": "cdd9c5fd-cc26-4ffe-b96e-dd09ba296c72",
       "description": "Endpoint untuk authentication:\n- Register user baru\n- Login (email atau phone)\n- Get current user info\n- Logout"
     },
     {
@@ -211,6 +238,7 @@
       "item": [
         {
           "name": "Create Ticket",
+          "id": "a43db372-e458-4057-83db-c19e6b29cf53",
           "request": {
             "method": "POST",
             "header": [
@@ -226,8 +254,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/tickets",
-              "host": ["{{base_url}}"],
-              "path": ["api", "tickets"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tickets"
+              ]
             },
             "description": "Create ticket baru.\n\nPermission: ticket.create (requester role)\n\nRequired:\n- subject: Judul ticket (max 255 char)\n- description: Deskripsi lengkap masalah\n- category_id: ID kategori ticket\n- channel: Saluran pelaporan (web, mobile, email)\n\nOptional:\n- attachments: File attachment (jika ada)"
           },
@@ -235,13 +268,19 @@
         },
         {
           "name": "List Tickets",
+          "id": "bfa9aac6-6537-4039-8c41-98e57f7c2371",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/tickets?page=1&per_page=15&status=open&priority=high",
-              "host": ["{{base_url}}"],
-              "path": ["api", "tickets"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tickets"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -264,20 +303,20 @@
                 {
                   "key": "category_id",
                   "value": "1",
-                  "disabled": true,
-                  "description": "Filter by category"
+                  "description": "Filter by category",
+                  "disabled": true
                 },
                 {
                   "key": "assigned_to",
                   "value": "5",
-                  "disabled": true,
-                  "description": "Filter by assigned technician"
+                  "description": "Filter by assigned technician",
+                  "disabled": true
                 },
                 {
                   "key": "search",
                   "value": "komputer",
-                  "disabled": true,
-                  "description": "Search in title/description"
+                  "description": "Search in title/description",
+                  "disabled": true
                 }
               ]
             },
@@ -287,13 +326,20 @@
         },
         {
           "name": "Get Ticket Detail",
+          "id": "2800be3b-8234-4a31-966d-777dafd1c6ab",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/tickets/{{ticket_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "tickets", "{{ticket_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticket_id}}"
+              ]
             },
             "description": "Mendapatkan detail ticket termasuk:\n- Data ticket lengkap\n- Comments\n- History/Logs\n- Assigned technician\n- Solution (jika sudah resolved)\n\nPermission: ticket.view"
           },
@@ -301,6 +347,7 @@
         },
         {
           "name": "Assign Ticket to Technician",
+          "id": "e9372223-e76a-4b51-9c0f-cdf0e8923643",
           "request": {
             "method": "POST",
             "header": [
@@ -316,8 +363,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/tickets/{{ticket_id}}/assign",
-              "host": ["{{base_url}}"],
-              "path": ["api", "tickets", "{{ticket_id}}", "assign"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticket_id}}",
+                "assign"
+              ]
             },
             "description": "Assign ticket ke technician oleh helpdesk.\n\nPermission: ticket.assign (helpdesk/supervisor/admin)\n\nWorkflow:\n- Ticket status: Open → Assigned\n- Technician yang di-assign harus confirm atau reject ticket\n\nRequired:\n- assigned_to: User ID technician\n\nOptional:\n- notes: Catatan assignment\n\nResponse:\n- Returns assigned technician info\n- Includes notes and assigned_at timestamp"
           },
@@ -325,6 +379,7 @@
         },
         {
           "name": "Technician Confirm Ticket",
+          "id": "88f4920d-58f5-4a75-afef-d5bb34e32f9a",
           "request": {
             "method": "POST",
             "header": [
@@ -340,8 +395,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/tickets/{{ticket_id}}/confirm",
-              "host": ["{{base_url}}"],
-              "path": ["api", "tickets", "{{ticket_id}}", "confirm"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticket_id}}",
+                "confirm"
+              ]
             },
             "description": "Technician confirm ticket yang sudah di-assign.\n\nPermission: ticket.change_status (technician)\n\nWorkflow:\n- Ticket status: Assigned → In Progress\n- Hanya technician yang di-assign yang bisa confirm\n\nNo body required."
           },
@@ -349,6 +411,7 @@
         },
         {
           "name": "Technician Reject Ticket",
+          "id": "3d289dc4-6d09-4271-b7fd-8098e423f73b",
           "request": {
             "method": "POST",
             "header": [
@@ -364,8 +427,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/tickets/{{ticket_id}}/reject",
-              "host": ["{{base_url}}"],
-              "path": ["api", "tickets", "{{ticket_id}}", "reject"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticket_id}}",
+                "reject"
+              ]
             },
             "description": "Technician reject ticket yang sudah di-assign.\n\nPermission: ticket.change_status (technician)\n\nWorkflow:\n- Ticket status: Assigned → Open\n- Assignment dihapus\n- Ticket kembali bisa di-assign ke technician lain\n\nRequired:\n- rejection_reason: Alasan reject (min 10 char)"
           },
@@ -373,6 +443,7 @@
         },
         {
           "name": "Solve/Resolve Ticket",
+          "id": "52e038b9-fdc5-4c65-ab8e-458f286d753c",
           "request": {
             "method": "POST",
             "header": [
@@ -388,8 +459,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/tickets/{{ticket_id}}/solve",
-              "host": ["{{base_url}}"],
-              "path": ["api", "tickets", "{{ticket_id}}", "solve"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticket_id}}",
+                "solve"
+              ]
             },
             "description": "Resolve/solve ticket dengan memberikan solution.\n\nPermission: ticket.resolve (technician)\n\nWorkflow:\n- Ticket status: In Progress → Resolved\n- Hanya technician yang di-assign yang bisa resolve\n\nNotes:\n- Ticket harus sudah di-confirm (status In Progress)\n- Creates ticket solution record dengan solved_at timestamp\n\nRequired:\n- solution: Deskripsi solusi yang diberikan (min 10 char)"
           },
@@ -397,6 +475,7 @@
         },
         {
           "name": "Helpdesk Unresolve Ticket",
+          "id": "3265bf6a-0ade-4b7f-9f8c-66ccfa30e87a",
           "request": {
             "method": "POST",
             "header": [
@@ -412,8 +491,15 @@
             },
             "url": {
               "raw": "{{base_url}}/api/tickets/{{ticket_id}}/unresolve",
-              "host": ["{{base_url}}"],
-              "path": ["api", "tickets", "{{ticket_id}}", "unresolve"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticket_id}}",
+                "unresolve"
+              ]
             },
             "description": "Helpdesk unresolve ticket jika masalah belum terselesaikan.\n\nPermission: ticket.assign (helpdesk/supervisor/admin)\n\nWorkflow:\n- Ticket status: Resolved → In Progress\n- Ticket kembali ke technician yang sama untuk dicek ulang\n\nRequired:\n- unresolve_reason: Alasan unresolve (min 10 char)"
           },
@@ -421,6 +507,7 @@
         },
         {
           "name": "Close Ticket",
+          "id": "ebc2c648-755d-4cd2-a0df-301f45bc3ae5",
           "request": {
             "method": "POST",
             "header": [
@@ -436,28 +523,35 @@
             },
             "url": {
               "raw": "{{base_url}}/api/tickets/{{ticket_id}}/close",
-              "host": ["{{base_url}}"],
-              "path": ["api", "tickets", "{{ticket_id}}", "close"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticket_id}}",
+                "close"
+              ]
             },
             "description": "Close ticket setelah resolved dan masalah benar-benar selesai.\n\nPermission: ticket.close (helpdesk/admin/supervisor)\n\nWorkflow:\n- Ticket status: Resolved → Closed\n- Ticket tidak bisa diubah lagi setelah closed\n\nOptional:\n- closing_notes: Catatan penutupan ticket"
           },
           "response": []
-        }
-      ],
-      "description": "Endpoint untuk ticket management:\n\nWorkflow:\n1. Requester: Create ticket (status: Open)\n2. Helpdesk: Assign ticket ke technician (status: Assigned)\n3. Technician: Confirm atau Reject ticket\n   - Confirm: status → In Progress\n   - Reject: status → Open (assignment dihapus)\n4. Technician: Resolve ticket (status: Resolved)\n5. Helpdesk: Close atau Unresolve ticket\n   - Close: status → Closed (final)\n   - Unresolve: status → In Progress (untuk dicek ulang)\n\nEndpoints:\n- Create ticket\n- List tickets dengan filter\n- View ticket detail\n- Assign ke technician\n- Confirm ticket (technician)\n- Reject ticket (technician)\n- Resolve ticket (technician)\n- Unresolve ticket (helpdesk)\n- Close ticket (helpdesk)"
-    },
-    {
-      "name": "2a. My Tickets & History",
-      "item": [
+        },
         {
           "name": "Get My Tickets",
+          "id": "f8c98661-5d8e-41f3-b21e-06801c75e331",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/my-tickets",
-              "host": ["{{base_url}}"],
-              "path": ["api", "my-tickets"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "my-tickets"
+              ]
             },
             "description": "Mendapatkan semua ticket yang dibuat oleh user (requester).\n\nPermission: Terbuka untuk semua authenticated users\n\nResponse:\n- message: Status message\n- data: Array of tickets yang dibuat oleh user\n  - Includes: requester, status, category, assignment dengan technician info\n\nGunakan endpoint ini untuk requester melihat status semua ticketnya."
           },
@@ -465,13 +559,21 @@
         },
         {
           "name": "Get Ticket Completion History",
+          "id": "8177dd6e-6441-406f-83a3-0fdee095f5f1",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/tickets/{{ticket_id}}/completion-history",
-              "host": ["{{base_url}}"],
-              "path": ["api", "tickets", "{{ticket_id}}", "completion-history"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticket_id}}",
+                "completion-history"
+              ]
             },
             "description": "Melihat history penyelesaian ticket - siapa teknisi yang menyelesaikannya dan kapan.\n\nPermission: ticket.view\n\nPath Parameters:\n- ticket_id: ID ticket\n\nResponse:\n- message: Status message\n- data:\n  - ticket_id: ID ticket\n  - ticket_number: Nomor ticket (TKT-YYYY-XXXXXX)\n  - completion_histories: Array of completion records\n    - id: History ID\n    - technician_id: ID teknisi\n    - resolved_at: Waktu penyelesaian\n    - solution_text: Solusi yang diberikan\n    - technician: Object berisi data teknisi (name, email)\n\nGunakan endpoint ini untuk melihat siapa saja yang pernah menyelesaikan ticket ini (jika ada multiple resolutions/unresolves)."
           },
@@ -479,33 +581,49 @@
         },
         {
           "name": "Get Technician Resolved Tickets",
+          "id": "5714aed2-d2df-4a81-b1d3-b7bffe38041a",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/users/{{user_id}}/resolved-tickets",
-              "host": ["{{base_url}}"],
-              "path": ["api", "users", "{{user_id}}", "resolved-tickets"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{user_id}}",
+                "resolved-tickets"
+              ]
             },
             "description": "Melihat semua ticket yang telah diselesaikan oleh seorang technician.\n\nPermission: user.view (helpdesk, supervisor, admin)\n\nPath Parameters:\n- user_id: ID technician user\n\nResponse:\n- message: Status message\n- data:\n  - technician_id: ID teknisi\n  - technician_name: Nama teknisi\n  - total_resolved: Total ticket yang diselesaikan\n  - resolved_tickets: Array of completion history records\n    - id: History ID\n    - ticket_id: ID ticket\n    - resolved_at: Waktu penyelesaian\n    - solution_text: Solusi yang diberikan\n    - ticket: Object berisi ticket info (ticket_number, subject, status)\n\nGunakan endpoint ini untuk melihat performa technician - berapa banyak ticket yang sudah diselesaikan."
           },
           "response": []
         }
       ],
-      "description": "Endpoint untuk melihat ticket history dan penyelesaian:\n\n- Get My Tickets: Requester melihat semua ticket mereka\n- Get Ticket Completion History: Melihat history siapa saja yang menyelesaikan ticket tertentu\n- Get Technician Resolved Tickets: Melihat semua ticket yang diselesaikan oleh seorang technician\n\nFitur baru: Automatic tracking ketika technician menyelesaikan ticket via /solve endpoint, sistem mencatat di TechnicianTicketHistory untuk audit trail dan performance tracking."
+      "id": "d2825526-10a5-48e5-bfa9-78b571ff0e31",
+      "description": "Endpoint untuk ticket management:\n\nWorkflow:\n1. Requester: Create ticket (status: Open)\n2. Helpdesk: Assign ticket ke technician (status: Assigned)\n3. Technician: Confirm atau Reject ticket\n   - Confirm: status → In Progress\n   - Reject: status → Open (assignment dihapus)\n4. Technician: Resolve ticket (status: Resolved)\n5. Helpdesk: Close atau Unresolve ticket\n   - Close: status → Closed (final)\n   - Unresolve: status → In Progress (untuk dicek ulang)\n\nEndpoints:\n- Create ticket\n- List tickets dengan filter\n- View ticket detail\n- Assign ke technician\n- Confirm ticket (technician)\n- Reject ticket (technician)\n- Resolve ticket (technician)\n- Unresolve ticket (helpdesk)\n- Close ticket (helpdesk)"
     },
     {
-      "name": "3. User Management (Master Admin)",
+      "name": "3. User Management",
       "item": [
         {
           "name": "Get Available Roles",
+          "id": "a98e4f74-87e2-479a-9726-87663f1f4bd1",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/users/available-roles",
-              "host": ["{{base_url}}"],
-              "path": ["api", "users", "available-roles"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "available-roles"
+              ]
             },
             "description": "Mendapatkan list role yang tersedia untuk assignment.\n\nRole: master-admin only\n\nResponse: [\"helpdesk\", \"technician\", \"supervisor\"]"
           },
@@ -513,13 +631,21 @@
         },
         {
           "name": "Get Users by Role",
+          "id": "6374dc2e-b391-4930-8504-7ebc386ad959",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/users/by-role/technician",
-              "host": ["{{base_url}}"],
-              "path": ["api", "users", "by-role", "technician"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "by-role",
+                "technician"
+              ]
             },
             "description": "Mendapatkan semua user dengan role tertentu.\n\nRole: master-admin only\n\nPath Parameters:\n- roleName: helpdesk, technician, supervisor, requester, manager\n\nResponse:\n- message: Status message\n- role: Role yang di-filter\n- count: Jumlah user dengan role tersebut\n- data: Array of users dengan role tersebut"
           },
@@ -527,13 +653,20 @@
         },
         {
           "name": "Get Roles Summary",
+          "id": "f235f269-a331-45e8-abe3-9355d1327d4f",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/users/roles-summary",
-              "host": ["{{base_url}}"],
-              "path": ["api", "users", "roles-summary"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "roles-summary"
+              ]
             },
             "description": "Mendapatkan ringkasan jumlah user per role di sistem.\n\nRole: master-admin only\n\nResponse:\n- message: Status message\n- data: Array of roles dengan user count masing-masing"
           },
@@ -541,13 +674,19 @@
         },
         {
           "name": "List All Users",
+          "id": "9a651ca0-b1b3-412a-b835-48aada53c7fd",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/users?page=1&per_page=15",
-              "host": ["{{base_url}}"],
-              "path": ["api", "users"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ],
               "query": [
                 {
                   "key": "page",
@@ -560,20 +699,20 @@
                 {
                   "key": "role",
                   "value": "helpdesk",
-                  "disabled": true,
-                  "description": "Filter by role"
+                  "description": "Filter by role",
+                  "disabled": true
                 },
                 {
                   "key": "department_id",
                   "value": "1",
-                  "disabled": true,
-                  "description": "Filter by department"
+                  "description": "Filter by department",
+                  "disabled": true
                 },
                 {
                   "key": "search",
                   "value": "john",
-                  "disabled": true,
-                  "description": "Search name/email/phone"
+                  "description": "Search name/email/phone",
+                  "disabled": true
                 }
               ]
             },
@@ -583,20 +722,49 @@
         },
         {
           "name": "Get User Detail",
+          "id": "11127d8f-cb66-4617-a790-5502412926d2",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/users/{{user_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "users", "{{user_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{user_id}}"
+              ]
             },
             "description": "Mendapatkan detail user.\n\nRole: master-admin only"
           },
           "response": []
         },
         {
+          "name": "Get Active Technicians",
+          "id": "e901ab84-6e91-4615-bbdc-0643f8b791b8",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/technicians/active",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "technicians",
+                "active"
+              ]
+            },
+            "description": "Mendapatkan daftar teknisi yang berstatus aktif saja.\n\nRole: Master Admin & Helpdesk\n\nResponse:\n- id: User ID\n- name: Nama teknisi\n- email: Email address\n- phone: Nomor telepon\n- department: Department info (id, name)\n- is_active: Status aktif (always true)\n- created_at: Tanggal pembuatan akun\n- count: Total active technicians\n\nGunakan endpoint ini untuk:\n- Dropdown teknisi saat assign tiket\n- Dashboard menampilkan jumlah teknisi aktif\n- List teknisi yang tersedia"
+          },
+          "response": []
+        },
+        {
           "name": "Create User",
+          "id": "18838449-179d-4e0e-877c-517976710ce4",
           "request": {
             "method": "POST",
             "header": [
@@ -612,8 +780,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/users",
-              "host": ["{{base_url}}"],
-              "path": ["api", "users"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
             },
             "description": "Create user baru dengan role assignment.\n\nRole: master-admin only\n\nRequired:\n- name: Nama lengkap (max 100 char)\n- email: Email unique\n- phone: Phone unique (max 20 char)\n- password: Min 8 characters\n- roles: Array of roles [\"helpdesk\", \"technician\", \"supervisor\"]\n\nOptional:\n- department_id: ID department"
           },
@@ -621,6 +794,7 @@
         },
         {
           "name": "Create User - Multiple Roles",
+          "id": "68427c0b-7946-4c91-a824-4da53c3e3622",
           "request": {
             "method": "POST",
             "header": [
@@ -636,8 +810,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/users",
-              "host": ["{{base_url}}"],
-              "path": ["api", "users"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
             },
             "description": "Create user dengan multiple roles.\n\nUser bisa memiliki lebih dari 1 role sekaligus."
           },
@@ -645,6 +824,7 @@
         },
         {
           "name": "Update User",
+          "id": "9ea968c3-208f-46fc-8195-4e75dd0a7808",
           "request": {
             "method": "PUT",
             "header": [
@@ -660,8 +840,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/users/{{user_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "users", "{{user_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{user_id}}"
+              ]
             },
             "description": "Update user data.\n\nRole: master-admin only\n\nSemua field optional (hanya kirim field yang ingin diupdate):\n- name\n- email (unique, except self)\n- phone (unique, except self)\n- department_id\n- roles (array)\n\nNote: Tidak bisa update master-admin user"
           },
@@ -669,6 +855,7 @@
         },
         {
           "name": "Update User - Partial",
+          "id": "53e8c0b5-4cc5-4e07-ac0f-e643f3d2987c",
           "request": {
             "method": "PUT",
             "header": [
@@ -684,8 +871,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/users/{{user_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "users", "{{user_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{user_id}}"
+              ]
             },
             "description": "Partial update - hanya update field tertentu.\n\nKirim hanya field yang ingin diubah."
           },
@@ -693,6 +886,7 @@
         },
         {
           "name": "Reset User Password",
+          "id": "89509f7d-9d08-4bca-9385-9a350c7a9b8a",
           "request": {
             "method": "POST",
             "header": [
@@ -708,15 +902,22 @@
             },
             "url": {
               "raw": "{{base_url}}/api/users/{{user_id}}/reset-password",
-              "host": ["{{base_url}}"],
-              "path": ["api", "users", "{{user_id}}", "reset-password"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{user_id}}",
+                "reset-password"
+              ]
             },
             "description": "Reset password user.\n\nRole: master-admin only\n\nRequired:\n- password: Password baru (min 8 char)\n\nNote:\n- Tidak bisa reset master-admin password\n- Semua active session user akan di-logout\n- User harus login kembali dengan password baru"
           },
           "response": []
         }
-
       ],
+      "id": "f380a677-eafa-44c9-aa6e-72c8cd037346",
       "description": "Endpoint untuk user management (Master Admin only):\n- List users\n- Get users by specific role\n- Get roles summary\n- Create user dengan role\n- Update user data & roles\n- Reset password\n\nProtection:\n- Master-admin user tidak bisa di-edit/reset"
     },
     {
@@ -724,6 +925,7 @@
       "item": [
         {
           "name": "List All Departments",
+          "id": "c1e75c20-1dd6-4e1a-bc1b-73a06992ea55",
           "request": {
             "method": "GET",
             "header": [
@@ -735,8 +937,13 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/departments",
-              "host": ["{{base_url}}"],
-              "path": ["api", "departments"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "departments"
+              ],
               "query": [
                 {
                   "key": "search",
@@ -751,6 +958,7 @@
         },
         {
           "name": "Get Department Detail",
+          "id": "fafb5279-4cc2-4d4c-9a96-a1d4259933c5",
           "request": {
             "method": "GET",
             "header": [
@@ -762,8 +970,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/departments/1",
-              "host": ["{{base_url}}"],
-              "path": ["api", "departments", "1"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "departments",
+                "1"
+              ]
             },
             "description": "Menampilkan detail departemen berdasarkan ID.\n\nRole: All authenticated users"
           },
@@ -771,6 +985,7 @@
         },
         {
           "name": "Create Department",
+          "id": "abd2488e-2c0b-48b2-9826-02f1b42dc520",
           "request": {
             "method": "POST",
             "header": [
@@ -786,8 +1001,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/departments",
-              "host": ["{{base_url}}"],
-              "path": ["api", "departments"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "departments"
+              ]
             },
             "description": "Membuat departemen baru.\n\nRole: Admin & Helpdesk only\n\nRequired:\n- name: Nama departemen (max 255 char, harus unique)"
           },
@@ -795,6 +1015,7 @@
         },
         {
           "name": "Update Department",
+          "id": "034bb649-144f-4269-a560-1bba796c9a00",
           "request": {
             "method": "PUT",
             "header": [
@@ -810,8 +1031,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/departments/1",
-              "host": ["{{base_url}}"],
-              "path": ["api", "departments", "1"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "departments",
+                "1"
+              ]
             },
             "description": "Mengupdate data departemen.\n\nRole: Admin & Helpdesk only\n\nRequired:\n- name: Nama departemen baru (harus unique jika berubah)"
           },
@@ -819,6 +1046,7 @@
         },
         {
           "name": "Delete Department",
+          "id": "5a29846a-0746-48e0-9129-a4ed7bac149d",
           "request": {
             "method": "DELETE",
             "header": [
@@ -830,14 +1058,21 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/departments/1",
-              "host": ["{{base_url}}"],
-              "path": ["api", "departments", "1"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "departments",
+                "1"
+              ]
             },
             "description": "Menghapus departemen.\n\nRole: Admin & Helpdesk only\n\nCatatan:\n- Tidak bisa menghapus departemen yang masih memiliki user\n- Akan mengembalikan 422 error jika ada user terikat"
           },
           "response": []
         }
       ],
+      "id": "62f0a166-133b-4bc1-a506-b89e43a1023f",
       "description": "Endpoint untuk department management:\n- List departments dengan pencarian (All roles)\n- Get department detail (All roles)\n- Create, Update, Delete departments (Admin & Helpdesk only)\n\nProtection:\n- GET: Semua user yang authenticated\n- POST/PUT/PATCH/DELETE: Hanya Admin & Helpdesk\n- Validasi: Nama departemen harus unique\n- Soft delete protection: Tidak bisa hapus departemen dengan user"
     },
     {
@@ -845,6 +1080,7 @@
       "item": [
         {
           "name": "List All Categories",
+          "id": "15235d24-8875-48db-88c3-4e54a571c4ee",
           "request": {
             "method": "GET",
             "header": [
@@ -856,8 +1092,13 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/categories",
-              "host": ["{{base_url}}"],
-              "path": ["api", "categories"],
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "categories"
+              ],
               "query": [
                 {
                   "key": "search",
@@ -872,6 +1113,7 @@
         },
         {
           "name": "Get Category Detail",
+          "id": "32378f40-ca15-40b4-ae2a-c9adb2febb42",
           "request": {
             "method": "GET",
             "header": [
@@ -883,8 +1125,14 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/categories/1",
-              "host": ["{{base_url}}"],
-              "path": ["api", "categories", "1"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "categories",
+                "1"
+              ]
             },
             "description": "Mengambil detail kategori berdasarkan ID.\n\nRole: Public (tidak perlu auth)\n\nResponse:\n- Menampilkan detail kategori lengkap\n- 404 jika kategori tidak ditemukan"
           },
@@ -892,6 +1140,7 @@
         },
         {
           "name": "Create Category",
+          "id": "5ee6207c-855a-43d0-bb0d-5e3e62af1c1d",
           "request": {
             "method": "POST",
             "header": [
@@ -907,8 +1156,13 @@
             },
             "url": {
               "raw": "{{base_url}}/api/categories",
-              "host": ["{{base_url}}"],
-              "path": ["api", "categories"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "categories"
+              ]
             },
             "description": "Membuat kategori tiket baru.\n\nRole: Admin & Helpdesk only\n\nRequired:\n- name: Nama kategori (max 255 karakter, harus unique)\n\nOptional:\n- description: Deskripsi kategori (max 1000 karakter)\n\nValidation Errors:\n- 422: Nama sudah ada, atau format tidak valid\n- 401: Tidak authenticated\n- 403: Role tidak memiliki akses"
           },
@@ -916,6 +1170,7 @@
         },
         {
           "name": "Update Category",
+          "id": "6a740b45-118a-4be0-8ab4-50313de2d327",
           "request": {
             "method": "PUT",
             "header": [
@@ -931,8 +1186,14 @@
             },
             "url": {
               "raw": "{{base_url}}/api/categories/1",
-              "host": ["{{base_url}}"],
-              "path": ["api", "categories", "1"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "categories",
+                "1"
+              ]
             },
             "description": "Mengubah/update kategori tiket.\n\nRole: Admin & Helpdesk only\n\nRequired:\n- name: Nama kategori baru (max 255 karakter, harus unique kecuali nama sama)\n\nOptional:\n- description: Deskripsi kategori baru (max 1000 karakter)\n\nNote:\n- Bisa menggunakan PATCH juga dengan request yang sama\n- 404 jika kategori tidak ditemukan"
           },
@@ -940,6 +1201,7 @@
         },
         {
           "name": "Delete Category",
+          "id": "8f549b7c-4704-4f07-b5a2-0401eb3cc88d",
           "request": {
             "method": "DELETE",
             "header": [
@@ -951,64 +1213,93 @@
             ],
             "url": {
               "raw": "{{base_url}}/api/categories/1",
-              "host": ["{{base_url}}"],
-              "path": ["api", "categories", "1"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "categories",
+                "1"
+              ]
             },
             "description": "Menghapus kategori tiket.\n\nRole: Admin & Helpdesk only\n\nCatatan:\n- Tidak bisa menghapus kategori yang masih memiliki tiket\n- Akan mengembalikan 422 error jika ada tiket terikat\n- 404 jika kategori tidak ditemukan"
           },
           "response": []
         }
       ],
+      "id": "4d8246ca-bea5-41b2-9ddc-f3074ef542a3",
       "description": "Endpoint untuk category management (Manajemen Kategori Tiket):\n- List categories dengan pencarian (Public)\n- Get category detail (Public)\n- Create, Update, Delete categories (Admin & Helpdesk only)\n\nProtection:\n- GET: Public - tidak perlu auth\n- POST/PUT/PATCH/DELETE: Hanya Admin & Helpdesk\n- Validasi: Nama kategori harus unique\n- Soft delete protection: Tidak bisa hapus kategori dengan tiket\n\nUse Cases:\n- Master Admin & Helpdesk: Kelola daftar kategori tiket untuk sistem"
-    }
-  ],
-  "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          ""
-        ]
-      }
     },
     {
-      "listen": "test",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          ""
-        ]
-      }
+      "name": "Get Dashboard Data",
+      "id": "ede52aee-0a5e-4296-a976-184905f28e1d",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/dashboard",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "dashboard"
+          ]
+        },
+        "description": "Mengambil semua kategori tiket dengan opsional pencarian.\n\nRole: Public (tidak perlu auth)\n\nQuery Parameters:\n- search (optional): Filter kategori berdasarkan nama atau deskripsi"
+      },
+      "response": []
     }
   ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
   "variable": [
     {
+      "id": "8d373d12-28b8-47f0-b98d-f17647e698db",
       "key": "base_url",
       "value": "http://localhost:8000",
       "type": "string"
     },
     {
+      "id": "33f860f2-aefa-42ac-8ab2-70b3a4ad00d5",
       "key": "auth_token",
       "value": "",
       "type": "string"
     },
     {
+      "id": "6889f7de-879e-4852-8779-951e91a2b860",
       "key": "user_id",
       "value": "",
       "type": "string"
     },
     {
+      "id": "5faee8bf-39ff-4b92-abe9-f7b04410753c",
       "key": "ticket_id",
       "value": "1",
       "type": "string"
     },
     {
+      "id": "0a128561-be5b-41cf-818d-0c96d2969873",
       "key": "master_admin_email",
       "value": "admin@arwana.com",
       "type": "string"
     },
     {
+      "id": "7220630d-bebe-4338-95c7-dd0168083926",
       "key": "master_admin_password",
       "value": "password123",
       "type": "string"
