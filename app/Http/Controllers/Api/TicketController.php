@@ -46,9 +46,37 @@ class TicketController extends Controller
     {
         $user = $request->user();
 
-        $tickets = $this->queryService->listTickets($user);
+        // Get query parameters for filtering
+        $status = $request->query('status');
+        $categoryId = $request->query('category_id');
+        $assignedTo = $request->query('assigned_to');
+        $search = $request->query('search');
+        $sortBy = $request->query('sort_by', 'created_at');
+        $sortOrder = $request->query('sort_order', 'desc');
+        $page = (int) $request->query('page', 1);
+        $perPage = (int) $request->query('per_page', 15);
 
-        return response()->json($tickets);
+        // Validate page and per_page
+        $page = max(1, $page);
+        $perPage = min(max(1, $perPage), 100); // Max 100 items per page
+
+        $result = $this->queryService->listTickets(
+            $user,
+            $status,
+            $categoryId,
+            $assignedTo,
+            $search,
+            $sortBy,
+            $sortOrder,
+            $page,
+            $perPage
+        );
+
+        return response()->json([
+            'message' => 'Tickets retrieved successfully',
+            'data' => $result['data'],
+            'pagination' => $result['pagination']
+        ]);
     }
 
     /**
@@ -69,7 +97,7 @@ class TicketController extends Controller
 
     public function close(Ticket $ticket)
     {
-        $this->crudService->closeTicket($ticket);
+        $this->crudService->closeTicket($ticket, request()->user()->id);
 
         return response()->json(['message' => 'Ticket closed']);
     }
@@ -162,7 +190,7 @@ class TicketController extends Controller
     public function unresolve(TicketActionRequest $request, Ticket $ticket)
     {
         $validated = $request->validated();
-        $result = $this->crudService->unresolveTicket($ticket);
+        $result = $this->crudService->unresolveTicket($ticket, $request->user()->id);
 
         if (isset($result['error'])) {
             return response()->json(['message' => $result['error']], $result['status']);
@@ -222,20 +250,30 @@ class TicketController extends Controller
     }
 
     /**
-     * GET /tickets/by-status/{status}
-     * Ambil semua ticket berdasarkan status (OPEN, ASSIGNED, IN PROGRESS, RESOLVED, CLOSED)
+     * GET /tickets/{ticket}/logs
+     * Lihat history log ticket
      */
-    public function byStatus(Request $request, string $status)
+    public function logs(Request $request, Ticket $ticket)
     {
         $user = $request->user();
-        $tickets = $this->queryService->byStatus($status, $user);
+        $ticket->load(['assignment']);
+
+        $isPrivileged = $user->hasRole('master-admin') || $user->hasRole('helpdesk');
+        $isRelatedRequester = $ticket->requester_id === $user->id;
+        $isRelatedTechnician = $ticket->assignment && $ticket->assignment->assigned_to === $user->id;
+
+        if (!$isPrivileged && !$isRelatedRequester && !$isRelatedTechnician) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $ticket = $this->queryService->logs($ticket);
 
         return response()->json([
-            'message' => 'Tickets by status retrieved successfully',
+            'message' => 'Ticket logs retrieved successfully',
             'data' => [
-                'status' => strtolower($status),
-                'total' => count($tickets),
-                'tickets' => $tickets
+                'ticket_id' => $ticket->id,
+                'ticket_number' => $ticket->ticket_number,
+                'logs' => $ticket->logs,
             ]
         ]);
     }

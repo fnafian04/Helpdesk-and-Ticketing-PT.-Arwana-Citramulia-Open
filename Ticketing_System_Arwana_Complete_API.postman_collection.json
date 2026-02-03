@@ -601,6 +601,28 @@
           "response": []
         },
         {
+          "name": "Get Ticket Logs",
+          "id": "b8bd5f1a-40d1-4f7d-9b35-2c8e0ddab2f4",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tickets/{{ticket_id}}/logs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticket_id}}",
+                "logs"
+              ]
+            },
+            "description": "Melihat history logs ticket (status change dan aktivitas penting).\n\nAccess: master-admin, helpdesk, atau user yang berelasi dengan ticket (requester atau technician yang di-assign).\n\nPath Parameters:\n- ticket_id: ID ticket\n\nResponse:\n- message: Status message\n- data:\n  - ticket_id: ID ticket\n  - ticket_number: Nomor ticket\n  - logs: Array of log records\n    - id: Log ID\n    - user_id: ID user\n    - action: Action (open, assigned, in_progress, resolved, closed, rejected, unresolved)\n    - description: Deskripsi log\n    - created_at: Timestamp\n    - user: Object berisi data user (name, email)"
+          },
+          "response": []
+        },
+        {
           "name": "Get Technician Resolved Tickets",
           "id": "5714aed2-d2df-4a81-b1d3-b7bffe38041a",
           "request": {
@@ -1290,37 +1312,37 @@
   },
   "variable": [
     {
-      "id": "4a9401bd-9937-4747-8521-11dd046c76af",
+      "id": "11ad5772-8f04-43f9-a264-4eec617f719c",
       "key": "base_url",
       "value": "http://localhost:8000",
       "type": "string"
     },
     {
-      "id": "5fb87377-95d2-4050-8e56-203c07b1e700",
+      "id": "d381c1fe-93d0-46ce-9832-5b7c5437cba7",
       "key": "auth_token",
       "value": "",
       "type": "string"
     },
     {
-      "id": "3bd6137c-770b-4b1d-b54d-d0f7758f4e00",
+      "id": "81b26244-84e0-4faa-96e7-f5deb32998db",
       "key": "user_id",
       "value": "",
       "type": "string"
     },
     {
-      "id": "44eb71d8-cd4d-4764-87f8-61620ceb1159",
+      "id": "ca16eb47-bafd-4a1b-ae9e-a25621ee7c45",
       "key": "ticket_id",
       "value": "1",
       "type": "string"
     },
     {
-      "id": "12e9bfe7-ab96-429d-8b07-1887005d6d06",
+      "id": "2f11fb14-1e91-4082-bc9c-970ea91e78ea",
       "key": "master_admin_email",
       "value": "admin@arwana.com",
       "type": "string"
     },
     {
-      "id": "1d8a51a1-d5dd-4a1d-8cc6-f3e84cd4925c",
+      "id": "0fe0791e-f654-41e7-b06f-d66a8907b147",
       "key": "master_admin_password",
       "value": "password123",
       "type": "string"

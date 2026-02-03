@@ -46,6 +46,11 @@ class Ticket extends Model
         return $this->hasOne(TicketAssignment::class);
     }
 
+    public function logs()
+    {
+        return $this->hasMany(TicketLog::class);
+    }
+
     public function comments()
     {
         return $this->hasMany(TicketComment::class);

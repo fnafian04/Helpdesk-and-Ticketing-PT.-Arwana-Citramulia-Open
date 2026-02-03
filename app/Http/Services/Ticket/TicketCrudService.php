@@ -4,6 +4,7 @@ namespace App\Http\Services\Ticket;
 
 use App\Models\Ticket;
 use App\Models\TicketAssignment;
+use App\Models\TicketLog;
 use App\Models\TicketSolution;
 use App\Models\TicketStatus;
 use App\Models\TechnicianTicketHistory;
@@ -32,18 +33,32 @@ class TicketCrudService
             'ticket_number' => $this->generateTicketNumber($ticket->id)
         ]);
 
+        $this->logAction(
+            $ticket->id,
+            $requesterId,
+            'open',
+            'Ticket dibuat dan berstatus open'
+        );
+
         return $ticket;
     }
 
     /**
      * Close ticket
      */
-    public function closeTicket(Ticket $ticket): Ticket
+    public function closeTicket(Ticket $ticket, int $userId): Ticket
     {
         $ticket->update([
             'status_id' => TicketStatus::where('name', 'closed')->first()->id,
             'closed_at' => now(),
         ]);
+
+        $this->logAction(
+            $ticket->id,
+            $userId,
+            'closed',
+            'Ticket ditutup oleh helpdesk'
+        );
 
         return $ticket;
     }
@@ -68,6 +83,13 @@ class TicketCrudService
                 'status_id' => TicketStatus::where('name', 'assigned')->firstOrFail()->id
             ]);
         });
+
+        $this->logAction(
+            $ticket->id,
+            $assignerId,
+            'assigned',
+            'Ticket di-assign ke technician'
+        );
 
         $ticket->load('assignment.technician', 'status');
 
@@ -96,6 +118,13 @@ class TicketCrudService
         $ticket->update([
             'status_id' => TicketStatus::where('name', 'in progress')->firstOrFail()->id
         ]);
+
+        $this->logAction(
+            $ticket->id,
+            $technicianId,
+            'in_progress',
+            'Ticket dikonfirmasi dan dikerjakan oleh technician'
+        );
 
         return ['ticket' => $ticket];
     }
@@ -127,13 +156,20 @@ class TicketCrudService
             ]);
         });
 
+        $this->logAction(
+            $ticket->id,
+            $technicianId,
+            'rejected',
+            'Ticket ditolak oleh technician dan kembali ke open'
+        );
+
         return ['ticket' => $ticket];
     }
 
     /**
      * Helpdesk unresolves ticket
      */
-    public function unresolveTicket(Ticket $ticket): array
+    public function unresolveTicket(Ticket $ticket, int $userId): array
     {
         $ticket->load(['status', 'assignment']);
 
@@ -148,6 +184,13 @@ class TicketCrudService
         $ticket->update([
             'status_id' => TicketStatus::where('name', 'in progress')->firstOrFail()->id
         ]);
+
+        $this->logAction(
+            $ticket->id,
+            $userId,
+            'unresolved',
+            'Ticket di-unresolve dan dikembalikan ke in progress'
+        );
 
         return ['ticket' => $ticket];
     }
@@ -193,7 +236,24 @@ class TicketCrudService
             ]);
         });
 
+        $this->logAction(
+            $ticket->id,
+            $technicianId,
+            'resolved',
+            'Ticket diselesaikan oleh technician'
+        );
+
         return ['ticket' => $ticket];
+    }
+
+    private function logAction(int $ticketId, int $userId, string $action, ?string $description = null): void
+    {
+        TicketLog::create([
+            'ticket_id' => $ticketId,
+            'user_id' => $userId,
+            'action' => $action,
+            'description' => $description,
+        ]);
     }
 
     /**

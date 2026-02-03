@@ -56,13 +56,12 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::get('/my-tickets', [TicketController::class, 'myTickets']);
     
-    Route::get('/tickets/by-status/{status}', [TicketController::class, 'byStatus'])
-        ->middleware('permission:ticket.view');
-    
     Route::get('/tickets/{ticket}/completion-history', [TicketController::class, 'completionHistory'])
         ->middleware('permission:ticket.view');
 
-    // Ticket Assignment (Supervisor/Admin/Helpdesk)
+    Route::get('/tickets/{ticket}/logs', [TicketController::class, 'logs']);
+
+    // Ticket Assignment (Helpdesk/Supervisor)
     Route::post('/tickets/{ticket}/assign', [TicketController::class, 'assign'])
         ->middleware('permission:ticket.assign');
 
@@ -76,7 +75,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/tickets/{ticket}/solve', [TicketController::class, 'solve'])
         ->middleware('permission:ticket.resolve');
 
-    // Admin/Supervisor Actions
+    // Helpdesk/Supervisor Actions
     Route::post('/tickets/{ticket}/unresolve', [TicketController::class, 'unresolve'])
         ->middleware('permission:ticket.assign');
     
