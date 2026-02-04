@@ -43,7 +43,7 @@
                     <th>Tanggal Selesai</th>
                     <th>Judul Masalah</th>
                     <th>Kategori</th>
-                    <th>Lokasi</th>
+                    <th>divisi</th>
                     <th>Status</th>
                 </tr>
             </thead>

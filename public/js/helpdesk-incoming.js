@@ -12,8 +12,6 @@ document.addEventListener("DOMContentLoaded", function () {
   let _techniciansCache = null;
   // Pending preselection when ticket detail loads before tech list
   let _pendingAssignedTechId = null;
-  // Use a map for caching user details to reduce redundant network calls
-  const _userCache = new Map();
 
   // Pagination / State
   let currentPage = 1;
@@ -78,18 +76,19 @@ document.addEventListener("DOMContentLoaded", function () {
       '<tr><td colspan="5" style="text-align:center; padding:40px 0; color:#666">Memuat tiket...</td></tr>';
 
     try {
-      // Use the same source as Dashboard for unassigned tickets
-      const dashboardUrl = window.DASHBOARD_API || `${API_URL}/api/dashboard`;
-      console.debug("loadTickets: fetching dashboard from", dashboardUrl);
-      const res = await fetchWithAuth(dashboardUrl);
-      if (!res || !res.ok) throw new Error("Gagal load data dashboard");
+      // Single fetch to tickets endpoint with complete data
+      const ticketsUrl = `${window.TICKET_API_BASE || API_URL + "/api/tickets"}?status=open&per_page=${PER_PAGE}&page=${page}`;
+      console.debug("loadTickets: fetching from", ticketsUrl);
+      const res = await fetchWithAuth(ticketsUrl);
+      if (!res || !res.ok) throw new Error("Gagal load data tiket");
 
       const json = await res.json();
-      const data = json.data || {};
-      let tickets = data.unassigned_tickets || [];
+      const tickets = json.data || [];
+      const pagination = json.pagination || json.meta || null;
 
-      // Update badge count based on dashboard count
-      updateBadgeCount(tickets.length);
+      // Update badge count
+      const totalTickets = pagination?.total || tickets.length;
+      updateBadgeCount(totalTickets);
       if (window.updateOpenUnassignedCount) {
         window.updateOpenUnassignedCount();
       }
@@ -101,28 +100,20 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      // Render using fields returned by dashboard API
+      // Render directly - data is already complete from API
       ticketsBody.innerHTML = tickets.map(renderTicketRow).join("");
-
-      // Update requester/department if some data missing (and enrich rows with full ticket detail)
-      tickets.forEach((t) => {
-        updateRequesterDetails(t);
-        // Also fetch full ticket detail to ensure ticket_number, requester and department display correctly in the row
-        populateRowDetailsIncoming(t.id);
-      });
 
       // Bind assign buttons
       document
         .querySelectorAll("button.btn-assign[data-ticket-id]")
         .forEach((btn) => {
           btn.addEventListener("click", function () {
-            // Use ticket id (numeric) and subject from data attributes
             openAssignModal(this.dataset.ticketId, this.dataset.subject);
           });
         });
 
-      // Dashboard response does not include pagination meta for tickets; keep it simple
-      renderPagination(null, tickets.length);
+      // Render pagination with proper meta
+      renderPagination(pagination, tickets.length);
     } catch (err) {
       console.error("Error loading tickets", err);
       ticketsBody.innerHTML =
@@ -152,7 +143,7 @@ document.addEventListener("DOMContentLoaded", function () {
       <tr id="ticket-row-${t.id}">
         <td>
           <div class="ticket-subject">${subject}</div>
-          <div style="font-size:12px; color:#999">${ticketNum} • User: <span id="req-${t.id}">${requester}</span></div>
+          <div style="font-size:12px; color:#999">${ticketNum} • Requester: <span id="req-${t.id}">${requester}</span></div>
         </td>
         <td><span class="badge-dept bg-blue" id="dept-${t.id}">${deptName}</span></td>
         <td>${category}</td>
@@ -244,6 +235,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function closeAssignModal() {
     assignModal.style.display = "none";
+    // Clear notes for next use
+    document.getElementById("assignNotes").value = "";
   }
 
   async function loadTechnicians() {
@@ -313,6 +306,7 @@ document.addEventListener("DOMContentLoaded", function () {
   async function saveAssignment() {
     const ticketId = modalTicketIdInput.value;
     const techId = techSelect.value;
+    const notes = document.getElementById("assignNotes").value.trim();
     const saveBtn = document.getElementById("assignSaveBtn");
 
     if (!techId) {
@@ -332,12 +326,19 @@ document.addEventListener("DOMContentLoaded", function () {
       console.log("Assigning ticket", ticketId, "to tech", techId);
 
       const assignUrl = `${window.TICKET_API_BASE || API_URL + "/api/tickets"}/${ticketId}/assign`;
-      console.debug("Assign POST to", assignUrl, "payload", {
+      const payload = {
         assigned_to: techId,
-      });
+      };
+      
+      // Include notes if provided
+      if (notes) {
+        payload.notes = notes;
+      }
+      
+      console.debug("Assign POST to", assignUrl, "payload", payload);
       const res = await fetchWithAuth(assignUrl, {
         method: "POST",
-        body: JSON.stringify({ assigned_to: techId }),
+        body: JSON.stringify(payload),
       });
 
       if (res && res.ok) {
@@ -393,79 +394,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // --- HELPERS ---
 
-  // Fetch full ticket detail to enrich the rendered row (shows ticket_number, requester name, department)
-  async function populateRowDetailsIncoming(id) {
-    try {
-      const url = `${window.TICKET_API_BASE || API_URL + "/api/tickets"}/${id}`;
-      console.debug("populateRowDetailsIncoming fetching", url);
-      const r = await fetchWithAuth(url);
-      if (!r || !r.ok) return;
-      const json = await r.json();
-      const t = json.data || json.ticket || json;
-
-      const requesterName = t.requester?.name || t.requester_name || "-";
-      const deptName =
-        t.requester?.department?.name ||
-        t.department?.name ||
-        t.department_name ||
-        "-";
-      const ticketNumber = t.ticket_number || `#${t.id}`;
-
-      const reqEl = document.getElementById(`req-${id}`);
-      const deptEl = document.getElementById(`dept-${id}`);
-
-      if (reqEl) {
-        // Update parent line to show ticket number and user
-        const parent = reqEl.parentNode;
-        parent.innerHTML = `${escapeHtml(ticketNumber)} • User: <span id="req-${id}">${escapeHtml(requesterName)}</span>`;
-      }
-
-      if (deptEl) deptEl.innerText = escapeHtml(deptName);
-    } catch (e) {
-      console.warn("populateRowDetailsIncoming error", e);
-    }
-  }
-
-  async function updateRequesterDetails(ticket) {
-    const reqEl = document.getElementById(`req-${ticket.id}`);
-    const deptEl = document.getElementById(`dept-${ticket.id}`);
-
-    // Try to fill from ticket data first
-    if (reqEl && ticket.requester?.name) {
-      reqEl.innerText = escapeHtml(ticket.requester.name);
-    }
-    if (deptEl && ticket.requester?.department?.name) {
-      deptEl.innerText = escapeHtml(ticket.requester.department.name);
-      return;
-    }
-
-    // If still missing, fetch user detail
-    if (ticket.requester?.id) {
-      try {
-        if (_userCache.has(ticket.requester.id)) {
-          const u = _userCache.get(ticket.requester.id);
-          if (reqEl && u.name) reqEl.innerText = escapeHtml(u.name);
-          if (deptEl && u.department?.name)
-            deptEl.innerText = escapeHtml(u.department.name);
-        } else {
-          const res = await fetchWithAuth(
-            `${API_URL}/api/users/${ticket.requester.id}`,
-          );
-          if (res && res.ok) {
-            const json = await res.json();
-            const u = json.data || json.user || json;
-            _userCache.set(ticket.requester.id, u);
-            if (reqEl && u.name) reqEl.innerText = escapeHtml(u.name);
-            if (deptEl && u.department?.name)
-              deptEl.innerText = escapeHtml(u.department.name);
-          }
-        }
-      } catch (e) {
-        console.warn("User detail fetch error", e);
-      }
-    }
-  }
-
   function updateBadgeCount(count) {
     const badge = document.querySelector(".alert-badge span");
     if (badge) {
@@ -485,15 +413,34 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!container) return;
 
     container.innerHTML = "";
-    if (!meta && count < PER_PAGE) return;
+    if (!meta || meta.last_page <= 1) return;
 
-    const current = meta ? meta.current_page : currentPage;
-    const last = meta ? meta.last_page : 1;
+    const current = meta.current_page || currentPage;
+    const last = meta.last_page || 1;
 
-    let html = `<button class="btn btn-sm" onclick="loadTickets(${Math.max(1, current - 1)})">Prev</button>`;
-    html += `<button class="btn btn-sm" onclick="loadTickets(${current + 1})">Next</button>`; // Simplified for now
+    let html = '';
+    
+    // Previous button
+    if (current > 1) {
+      html += `<button class="btn btn-sm" onclick="loadTickets(${current - 1})">« Prev</button>`;
+    }
+    
+    // Page numbers
+    for (let i = 1; i <= last; i++) {
+      if (i === current) {
+        html += `<button class="btn btn-sm btn-primary" disabled>${i}</button>`;
+      } else if (i === 1 || i === last || (i >= current - 2 && i <= current + 2)) {
+        html += `<button class="btn btn-sm" onclick="loadTickets(${i})">${i}</button>`;
+      } else if (i === current - 3 || i === current + 3) {
+        html += `<span style="padding:0 5px">...</span>`;
+      }
+    }
+    
+    // Next button
+    if (current < last) {
+      html += `<button class="btn btn-sm" onclick="loadTickets(${current + 1})">Next »</button>`;
+    }
 
-    // You can implement full pagination buttons logic here if meta is robust
     container.innerHTML = html;
   }
 

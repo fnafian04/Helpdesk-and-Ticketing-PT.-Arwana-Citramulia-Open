@@ -44,6 +44,10 @@ Route::middleware('auth:sanctum')->group(function () {
 // TICKET MANAGEMENT ROUTES
 // ============================================================================
 Route::middleware('auth:sanctum')->group(function () {
+    // Ticket Count (for badge and analytics)
+    Route::get('/tickets/count', [TicketController::class, 'count'])
+        ->middleware('permission:ticket.view');
+    
     // Create & View Tickets
     Route::post('/tickets', [TicketController::class, 'store'])
         ->middleware('permission:ticket.create');

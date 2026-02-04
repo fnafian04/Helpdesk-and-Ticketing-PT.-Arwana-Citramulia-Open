@@ -44,6 +44,9 @@ class HelpdeskDashboard
         return Ticket::whereDoesntHave('assignment')
             ->with([
                 'category:id,name',
+                'requester:id,name,department_id',
+                'requester.department:id,name',
+                'status:id,name',
             ])
             ->orderByDesc('created_at')
             ->get()
@@ -52,7 +55,17 @@ class HelpdeskDashboard
                     'id' => $ticket->id,
                     'ticket_number' => $ticket->ticket_number,
                     'subject' => $ticket->subject,
+                    'description' => $ticket->description,
                     'category' => $ticket->category ? $ticket->category->name : 'Unknown',
+                    'status' => $ticket->status ? $ticket->status->name : 'Unknown',
+                    'requester' => [
+                        'id' => $ticket->requester->id,
+                        'name' => $ticket->requester->name,
+                        'department' => $ticket->requester->department ? [
+                            'id' => $ticket->requester->department->id,
+                            'name' => $ticket->requester->department->name
+                        ] : null,
+                    ],
                     'created_at' => $ticket->created_at->format('Y-m-d H:i'),
                 ];
             })

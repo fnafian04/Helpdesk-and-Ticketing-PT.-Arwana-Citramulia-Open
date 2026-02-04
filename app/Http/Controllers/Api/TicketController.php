@@ -82,6 +82,40 @@ class TicketController extends Controller
     }
 
     /**
+     * GET /api/tickets/count
+     * Get count of tickets with optional filtering (fast query for badges)
+     */
+    public function count(Request $request)
+    {
+        $user = $request->user();
+        $status = $request->query('status');
+
+        $query = Ticket::query();
+
+        // Role-based filtering (same as index)
+        if ($user->hasRole('requester')) {
+            $query->where('requester_id', $user->id);
+        } elseif ($user->hasRole('technician')) {
+            $query->whereHas('assignment', function ($q) use ($user) {
+                $q->where('technician_id', $user->id);
+            });
+        }
+
+        // Status filter
+        if ($status) {
+            $query->whereHas('status', function ($q) use ($status) {
+                $q->where('name', $status);
+            });
+        }
+
+        $count = $query->count();
+
+        return response()->json([
+            'count' => $count
+        ]);
+    }
+
+    /**
      * GET /my-tickets
      * Ambil semua ticket yang dibuat oleh user (requester)
      */

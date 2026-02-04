@@ -22,15 +22,16 @@ document.addEventListener("DOMContentLoaded", function () {
   const searchInput = document.getElementById("searchInput");
 
   // === CONFIG ===
-  const rowsPerPage = 10;
+  const rowsPerPage = 15; // Match API per_page
   const authToken =
     sessionStorage.getItem("auth_token") || localStorage.getItem("auth_token");
-  // Cache untuk menyimpan data user/detail agar tidak fetch berulang kali
+  // Cache only for modal details
   const _detailCache = new Map();
 
-  let allTickets = [];
-  let filteredTickets = [];
+  let currentTickets = [];
+  let paginationMeta = null;
   let currentPage = 1;
+  let searchQuery = "";
 
   // === HELPER: Fetch Data ===
   async function fetchWithAuth(url) {
@@ -52,16 +53,18 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // === 1. LOAD DATA LIST (LITE DATA) ===
-  async function loadTickets() {
+  // === 1. LOAD DATA WITH SERVER-SIDE PAGINATION ===
+  async function loadTickets(page = 1) {
+    currentPage = page;
     tableBody.innerHTML =
       '<tr><td colspan="6" class="loading-row"><i class="fa-solid fa-spinner fa-spin"></i> Memuat data tiket...</td></tr>';
     if (noData) noData.style.display = "none";
 
     try {
-      // Ambil data per_page 100 agar search client-side maksimal
-      const apiUrl = `${API_URL}/api/tickets?per_page=100`;
-      console.log("🔄 Fetching tickets from:", apiUrl);
+      // Use server-side pagination - data already complete from API
+      const searchParam = searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : "";
+      const apiUrl = `${API_URL}/api/tickets?page=${page}&per_page=${rowsPerPage}${searchParam}`;
+      console.log("Fetching tickets from:", apiUrl);
       const res = await fetchWithAuth(apiUrl);
 
       if (!res) {
@@ -72,74 +75,37 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       const json = await res.json();
-      console.log("📦 Raw API Response:", json);
-      let rawData = [];
+      console.log("API Response:", json);
+      
+      const rawData = json.data || [];
+      paginationMeta = json.pagination || json.meta || null;
 
-      // Handle struktur response Laravel (data wrapper)
-      if (json.data && Array.isArray(json.data)) {
-        rawData = json.data;
-        console.log(`✅ Parsed as json.data with ${rawData.length} items`);
-      } else if (Array.isArray(json)) {
-        rawData = json;
-        console.log(`✅ Parsed as direct array with ${rawData.length} items`);
-      } else if (json.tickets && Array.isArray(json.tickets)) {
-        rawData = json.tickets;
-        console.log(`✅ Parsed as json.tickets with ${rawData.length} items`);
-      } else {
-        console.warn("⚠️ Unexpected response format, raw content:", json);
-        rawData = [];
-      }
+      // Map data - no need for additional fetching, data is complete
+      currentTickets = rawData.map((t) => ({
+        id: t.id,
+        ticket_number: t.ticket_number || `T-${t.id}`,
+        subject: t.title || t.subject || "-",
+        requester: t.requester?.name || t.requester_name || "-",
+        dept: t.requester?.department?.name || t.department?.name || "-",
+        tech: t.assignment?.technician?.name || "-",
+        tech_dept: t.assignment?.technician?.department?.name || null,
+        status: t.status?.name || t.status || "Pending",
+        date: t.created_at || t.date,
+        raw: t,
+      }));
 
-      // Mapping Awal (Data Lite dari List)
-      allTickets = rawData.map((t) => {
-        // Log first few items untuk debugging
-        if (rawData.indexOf(t) < 2) {
-          console.log(`📌 Ticket ${t.id} structure:`, {
-            id: t.id,
-            has_requester: !!t.requester,
-            requester_name: t.requester?.name,
-            has_department: !!(t.requester?.department || t.department),
-            department_name:
-              t.requester?.department?.name || t.department?.name,
-            full_requester: t.requester,
-          });
-        }
-
-        return {
-          id: t.id,
-          ticket_number: t.ticket_number || `T-${t.id}`,
-          subject: t.title || t.subject || "-",
-          requester: t.requester?.name || t.requester_name || "Loading...",
-          requester_id: t.requester?.id,
-          dept:
-            t.requester?.department?.name ||
-            t.department?.name ||
-            t.department_name ||
-            null,
-          tech: t.assignment?.technician?.name || t.technician_name || "-",
-          status: t.status?.name || t.status || "Pending",
-          date: t.created_at || t.date,
-          raw: t,
-        };
-      });
-
-      // Sort (Terbaru diatas)
-      allTickets.sort((a, b) => b.id - a.id);
-
-      filteredTickets = [...allTickets];
-      renderTable(1);
-      console.log(`✨ Successfully loaded ${allTickets.length} tickets`);
+      renderTable();
+      console.log(`Successfully loaded ${currentTickets.length} tickets (page ${page})`);
     } catch (e) {
-      console.error("❌ Load Error:", e);
+      console.error("Load Error:", e);
       tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:#d62828;"><i class="fa-solid fa-circle-exclamation"></i> <br />Gagal memuat data tiket.<br /><small style="font-size:11px; color:#999;">${escapeHtml(e.message)}</small></td></tr>`;
     }
   }
-  // === 2. RENDER TABLE ===
-  function renderTable(page) {
-    currentPage = page;
+  // === 2. RENDER TABLE (Direct from API data) ===
+  function renderTable() {
     tableBody.innerHTML = "";
 
-    if (filteredTickets.length === 0) {
+    if (currentTickets.length === 0) {
       if (noData) noData.style.display = "block";
       paginationControls.innerHTML = "";
       return;
@@ -147,23 +113,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (noData) noData.style.display = "none";
 
-    // Client-side Pagination
-    const start = (page - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-    const paginated = filteredTickets.slice(start, end);
-
-    paginated.forEach((t) => {
+    // Render directly - data is already complete from API
+    currentTickets.forEach((t) => {
       // Mapping Status Class
       let statusClass = "status-pending";
       const s = String(t.status).toLowerCase();
       if (s.includes("open")) statusClass = "status-open";
+      else if (s.includes("assigned")) statusClass = "status-pending";
       else if (s.includes("progress")) statusClass = "status-progress";
-      else if (
-        s.includes("close") ||
-        s.includes("done") ||
-        s.includes("solved")
-      )
-        statusClass = "status-resolved";
+      else if (s.includes("resolved")) statusClass = "status-resolved";
+      else if (s.includes("close")) statusClass = "status-closed";
       else if (s.includes("reject")) statusClass = "status-rejected";
 
       // Format Tanggal
@@ -173,18 +132,20 @@ document.addEventListener("DOMContentLoaded", function () {
         year: "numeric",
       });
 
+      const techDisplay = t.tech_dept ? `${t.tech} (${t.tech_dept})` : t.tech;
+
       const row = `
                 <tr id="row-${t.id}">
-                    <td><strong>${t.ticket_number}</strong></td>
+                    <td><strong>${escapeHtml(t.ticket_number)}</strong></td>
                     <td>
-                        <div style="font-weight:600; color:#333;">${t.subject}</div>
+                        <div style="font-weight:600; color:#333;">${escapeHtml(t.subject)}</div>
                         <div style="font-size:12px; color:#888;">
-                            Oleh: <span id="req-name-${t.id}">${t.requester}</span>
+                            Oleh: ${escapeHtml(t.requester)}
                         </div>
                     </td>
-                    <td><span id="dept-name-${t.id}">${t.dept}</span></td>
-                    <td><span id="tech-name-${t.id}">${t.tech}</span></td>
-                    <td><span class="status-badge ${statusClass}">${t.status}</span></td>
+                    <td>${escapeHtml(t.dept)}</td>
+                    <td>${escapeHtml(techDisplay)}</td>
+                    <td><span class="status-badge ${statusClass}">${escapeHtml(t.status)}</span></td>
                     <td style="text-align: right;">
                         <button class="btn-view" onclick="openDetailById(${t.id})" title="Lihat Detail">
                             <i class="fa-solid fa-eye"></i>
@@ -193,164 +154,89 @@ document.addEventListener("DOMContentLoaded", function () {
                 </tr>
             `;
       tableBody.innerHTML += row;
-
-      // === KEY FIX: JALANKAN UPDATE ROW DI BACKGROUND ===
-      // Ini akan fetch detail per tiket untuk mengisi data yang 'Hancur/Hilang'
-      setTimeout(() => updateRowDetails(t.id), 0);
     });
 
     renderPaginationControls();
   }
 
-  // === 3. UPDATE ROW DETAILS (LOGIKA SAKTI DARI KODEMU) ===
-  async function updateRowDetails(id) {
-    // Cek elemen dulu, kalau tidak ada di layar (karena pagination), gak usah fetch
-    const reqEl = document.getElementById(`req-name-${id}`);
-    const deptEl = document.getElementById(`dept-name-${id}`);
-    const techEl = document.getElementById(`tech-name-${id}`);
-
-    if (!reqEl && !deptEl && !techEl) return;
-
-    // Cek cache dulu
-    let detail = _detailCache.get(id);
-
-    if (!detail) {
-      try {
-        // Fetch Full Detail Tiket
-        const res = await fetchWithAuth(`${API_URL}/api/tickets/${id}`);
-        if (!res || !res.ok) return;
-        const json = await res.json();
-        detail = json.data || json.ticket || json;
-
-        // Simpan ke cache
-        _detailCache.set(id, detail);
-      } catch (e) {
-        console.warn("Detail fetch error", e);
-        return;
-      }
-    }
-
-    if (detail) {
-      // 1. Update Requester
-      if (reqEl) {
-        if (detail.requester && detail.requester.name)
-          reqEl.innerText = detail.requester.name;
-        else if (detail.requester_name) reqEl.innerText = detail.requester_name;
-      }
-
-      // 2. Update Department
-      if (deptEl) {
-        let deptName =
-          (detail.requester &&
-            detail.requester.department &&
-            detail.requester.department.name) ||
-          (detail.department && detail.department.name) ||
-          detail.department_name ||
-          null;
-
-        if (!deptName && detail.requester?.id) {
-          try {
-            const userRes = await fetchWithAuth(
-              `${API_URL}/api/users/${detail.requester.id}`,
-            );
-            if (userRes && userRes.ok) {
-              const userData = await userRes.json();
-              const user = userData.data || userData.user || userData;
-              deptName = user.department?.name || user.departemen || null;
-            }
-          } catch (e) {
-            console.warn("Failed to fetch user for department", e);
-          }
-        }
-
-        deptEl.innerText = deptName || "-";
-      }
-
-      // 3. Update Technician (include department if available)
-      if (techEl) {
-        let techText = "-";
-        if (
-          detail.assignment &&
-          detail.assignment.technician &&
-          detail.assignment.technician.name
-        ) {
-          const tech = detail.assignment.technician;
-          const techDept =
-            tech.department?.name || tech.department_name || tech.dept || null;
-          techText = techDept ? `${tech.name} (${techDept})` : tech.name;
-        } else if (detail.technician && detail.technician.name) {
-          const tech = detail.technician;
-          const techDept =
-            tech.department?.name || tech.department_name || tech.dept || null;
-          techText = techDept ? `${tech.name} (${techDept})` : tech.name;
-        } else if (detail.assigned_to_name) {
-          techText = detail.assigned_to_name;
-        }
-        techEl.innerText = techText;
-      }
-    }
-  }
-
-  // === 4. PAGINATION CONTROLS ===
+  // === 4. PAGINATION CONTROLS (Server-side) ===
   function renderPaginationControls() {
     paginationControls.innerHTML = "";
-    const total = filteredTickets.length;
-    const pages = Math.ceil(total / rowsPerPage);
+    
+    if (!paginationMeta) return;
+
+    const { current_page, last_page, total, from, to } = paginationMeta;
 
     const info = document.getElementById("paginationInfo");
-    if (info)
-      info.innerText = `Menampilkan halaman ${currentPage} dari ${pages}`;
+    if (info) {
+      info.innerText = `Menampilkan ${from || 0}-${to || 0} dari ${total || 0} tiket (Halaman ${current_page} dari ${last_page})`;
+    }
 
-    if (pages <= 1) return;
+    if (last_page <= 1) return;
 
+    // Previous button
     const prev = createBtn(
-      '<i class="fa-solid fa-chevron-left"></i>',
-      currentPage === 1,
+      '<i class="fa-solid fa-chevron-left"></i> Prev',
+      current_page === 1,
       () => {
-        if (currentPage > 1) renderTable(currentPage - 1);
+        if (current_page > 1) loadTickets(current_page - 1);
       },
     );
     paginationControls.appendChild(prev);
 
+    // Page numbers (show first, last, and pages around current)
+    for (let i = 1; i <= last_page; i++) {
+      if (i === 1 || i === last_page || (i >= current_page - 2 && i <= current_page + 2)) {
+        const pageBtn = createBtn(
+          String(i),
+          false,
+          () => loadTickets(i),
+          i === current_page
+        );
+        paginationControls.appendChild(pageBtn);
+      } else if (i === current_page - 3 || i === current_page + 3) {
+        const dots = document.createElement("span");
+        dots.innerText = "...";
+        dots.style.cssText = "padding: 0 8px; color: #999;";
+        paginationControls.appendChild(dots);
+      }
+    }
+
+    // Next button
     const next = createBtn(
-      '<i class="fa-solid fa-chevron-right"></i>',
-      currentPage === pages,
+      'Next <i class="fa-solid fa-chevron-right"></i>',
+      current_page === last_page,
       () => {
-        if (currentPage < pages) renderTable(currentPage + 1);
+        if (current_page < last_page) loadTickets(current_page + 1);
       },
     );
     paginationControls.appendChild(next);
   }
 
-  function createBtn(html, disabled, onClick) {
+  function createBtn(html, disabled, onClick, isActive = false) {
     const div = document.createElement("div");
-    div.className = `page-btn ${disabled ? "disabled" : ""}`;
-    div.style.cssText = disabled ? "opacity: 0.5; cursor: not-allowed;" : "";
+    div.className = `page-btn ${disabled ? "disabled" : ""} ${isActive ? "active" : ""}`;
+    let styles = "";
+    if (disabled) styles = "opacity: 0.5; cursor: not-allowed;";
+    else if (isActive) styles = "background-color: #1976d2; color: white; font-weight: 600;";
+    div.style.cssText = styles;
     div.innerHTML = html;
     if (!disabled) div.onclick = onClick;
     return div;
   }
 
-  // === 5. SEARCH ===
+  // === 5. SEARCH (Client-side for current page, or trigger reload for server-side) ===
   if (searchInput) {
+    let searchTimeout;
     searchInput.addEventListener("input", function (e) {
-      const q = e.target.value.toLowerCase().trim();
-
-      if (!q) {
-        filteredTickets = [...allTickets];
-      } else {
-        // Filter berdasarkan data yang sudah di-load (Lite Data)
-        // Note: Data detail yg di-fetch background mungkin belum masuk sini,
-        // tapi ticket number dan subject biasanya sudah ada.
-        filteredTickets = allTickets.filter(
-          (t) =>
-            String(t.ticket_number).toLowerCase().includes(q) ||
-            String(t.subject).toLowerCase().includes(q) ||
-            String(t.requester).toLowerCase().includes(q),
-        );
-      }
-      // Reset ke halaman 1
-      renderTable(1);
+      const q = e.target.value.trim();
+      
+      // Debounce search to avoid too many requests
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        searchQuery = q;
+        loadTickets(1); // Reload from page 1 with search query
+      }, 500); // Wait 500ms after user stops typing
     });
   }
 

@@ -68,13 +68,16 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
+            // Skip if page sets flag to disable this fetch
+            if (window.SKIP_PENDING_COUNT_FETCH) return;
+            
             const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
             const badge = document.getElementById('pendingCount');
 
             if (token && badge) {
                 try {
-                    // Fetch hanya tiket dengan status 'pending'
-                    const response = await fetch('/api/tickets?status=pending', {
+                    // Fetch hanya count (lightweight endpoint)
+                    const response = await fetch('/api/tickets/count?status=open', {
                         headers: {
                             'Authorization': `Bearer ${token}`,
                             'Accept': 'application/json'
@@ -83,18 +86,7 @@
 
                     if (response.ok) {
                         const result = await response.json();
-
-                        // Logic hitung jumlah data
-                        let count = 0;
-                        // Handle jika response pagination atau array langsung
-                        const tickets = result.data ? result.data : (Array.isArray(result) ? result : []);
-
-                        // Filter manual (jaga-jaga API balikin semua)
-                        count = tickets.filter(t => {
-                            let s = t.status;
-                            if (typeof s !== 'string') s = s && s.name ? s.name : '';
-                            return (s || '').toLowerCase() === 'pending';
-                        }).length;
+                        const count = result.count || 0;
 
                         if (count > 0) {
                             badge.innerText = count;

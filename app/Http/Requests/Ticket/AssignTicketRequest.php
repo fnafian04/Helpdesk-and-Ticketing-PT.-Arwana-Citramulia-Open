@@ -17,22 +17,39 @@ class AssignTicketRequest extends FormRequest
         return [
             'assigned_to' => [
                 'required',
+                'integer',
                 'exists:users,id',
-                Rule::exists('users', 'id')->where(function ($query) {
-                    return $query->whereHas('roles', function ($roleQuery) {
-                        $roleQuery->where('name', 'technician');
-                    });
-                }),
+                Rule::exists('users', 'id'),
             ],
             'notes' => 'nullable|string|max:1000',
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $assignedTo = $this->input('assigned_to');
+            
+            // Validate user has technician role
+            if ($assignedTo) {
+                $user = \App\Models\User::find($assignedTo);
+                
+                if (!$user) {
+                    $validator->errors()->add('assigned_to', 'User tidak ditemukan');
+                } elseif (!$user->hasRole('technician')) {
+                    $validator->errors()->add('assigned_to', 'Hanya user dengan role Technician yang dapat di-assign');
+                } elseif (!$user->is_active) {
+                    $validator->errors()->add('assigned_to', 'Teknisi harus dalam status aktif');
+                }
+            }
+        });
     }
 
     public function messages(): array
     {
         return [
             'assigned_to.required' => 'Teknisi wajib dipilih',
-            'assigned_to.exists' => 'Hanya user dengan role Technician yang dapat di-assign',
+            'assigned_to.exists' => 'Teknisi tidak ditemukan',
             'notes.max' => 'Catatan maksimal 1000 karakter',
         ];
     }

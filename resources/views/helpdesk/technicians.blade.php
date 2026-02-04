@@ -150,6 +150,36 @@
 <script>
 let allTechnicians = [];
 
+
+// Auth Helper (only declare if not already defined in layout)
+if (typeof getAuthHeaders === 'undefined') {
+    window.getAuthHeaders = () => {
+        const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+        return {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        };
+    };
+}
+
+if (typeof fetchWithAuth === 'undefined') {
+    window.fetchWithAuth = async (url, options = {}) => {
+        const headers = { ...getAuthHeaders(), ...options.headers };
+        try {
+            const response = await fetch(url, { ...options, headers });
+            if (response.status === 401) {
+                window.location.href = '/login';
+                return null;
+            }
+            return response;
+        } catch (error) {
+            console.error('Fetch Error:', error);
+            return null;
+        }
+    };
+}
+
 // Fetch technicians on page load
 document.addEventListener('DOMContentLoaded', async function() {
     await fetchTechnicians();
@@ -157,23 +187,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 async function fetchTechnicians() {
     try {
-        const token = TokenManager.getToken();
-        if (!token) {
-            showError('Token tidak ditemukan. Silakan login kembali.');
-            return;
-        }
+        const response = await fetchWithAuth(`${API_URL}/api/users/by-role/technician`);
 
-        const response = await fetch(`${API_URL}/api/users/by-role/technician`, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        if (!response || !response.ok) {
+            throw new Error(`HTTP error! status: ${response?.status || 'unknown'}`);
         }
 
         const data = await response.json();

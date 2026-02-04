@@ -20,88 +20,14 @@
         </div>
     </div>
 
-    <div class="modal-overlay" id="assignModal">
-        <div class="modal-box">
-            <h3 style="margin-bottom:20px; font-size:18px; font-weight:700;">Assign Teknisi</h3>
 
-            <div
-                style="margin-bottom:20px; background:#fff5f5; padding:15px; border-radius:10px; border: 1px solid #ffcdd2;">
-                <div style="font-size: 12px; color: #d62828; font-weight: 600;" id="modalTicketId">#ID</div>
-                <div style="font-weight: 700; font-size: 15px; color: #333; margin-top: 3px;" id="modalTicketSubject">
-                    Subject</div>
-            </div>
-
-            <div style="margin-bottom: 10px;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: #555;">Pilih Teknisi:</label>
-                <select class="form-select" id="technicianSelect">
-                    <option value="">-- Pilih Teknisi --</option>
-                </select>
-            </div>
-
-            <div class="modal-footer">
-                <button class="btn-cancel" onclick="closeModal()">Batal</button>
-                <button class="btn-save" onclick="simpanAssignment()">Simpan & Kirim</button>
-            </div>
-        </div>
-    </div>
 @endsection
 
 @section('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-    const modal = document.getElementById('assignModal');
-    let activeTechnicians = [];
     
-    // Fetch active technicians
-    async function loadActiveTechnicians() {
-        try {
-            const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
-            
-            const response = await fetch('{{ url("/api/technicians/active") }}', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const result = await response.json();
-            activeTechnicians = result.data || [];
-            
-            // Populate dropdown
-            populateTechnicianDropdown();
-
-        } catch (error) {
-            console.error('Error loading technicians:', error);
-            activeTechnicians = [];
-        }
-    }
-
-    function populateTechnicianDropdown() {
-        const select = document.getElementById('technicianSelect');
-        
-        // Clear existing options except the default one
-        while (select.options.length > 1) {
-            select.remove(1);
-        }
-
-        // Add technicians
-        if (activeTechnicians.length > 0) {
-            activeTechnicians.forEach(tech => {
-                const option = document.createElement('option');
-                option.value = tech.id;
-                option.textContent = `👨‍🔧 ${tech.name} (${tech.department?.name || 'N/A'})`;
-                select.appendChild(option);
-            });
-        }
-    }
-    
-    // Fetch dashboard data from API
+    // Fetch dashboard data from API (SINGLE FETCH ONLY)
     async function loadDashboard() {
         try {
             const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
@@ -168,8 +94,8 @@
                             <td><span class="badge-dept ${deptClass}">${ticket.category}</span></td>
                             <td>${ticket.created_at}</td>
                             <td>
-                                <button class="btn-assign" onclick="openModal('${ticket.ticket_number}', '${ticket.subject}', ${ticket.id})">
-                                    Pilih Teknisi <i class="fa-solid fa-arrow-right"></i>
+                                <button class="btn-assign" onclick="window.location.href = '{{ url('/helpdesk/tickets') }}/' + ${ticket.id}">
+                                    Lihat Detail <i class="fa-solid fa-arrow-right"></i>
                                 </button>
                             </td>
                         </tr>
@@ -207,65 +133,13 @@
     }
 
     function getCategoryClass(category) {
-        const categoryMap = {
-            'Hardware': 'dept-hardware',
-            'Account & Access': 'dept-account',
-            'Other': 'dept-other',
-        };
-        
-        const defaultClass = 'dept-other';
-        
         if (category.toLowerCase().includes('hardware')) return 'dept-hardware';
         if (category.toLowerCase().includes('account')) return 'dept-account';
-        return defaultClass;
+        return 'dept-other';
     }
 
-    function openModal(ticketNumber, subject, ticketId) {
-        document.getElementById('modalTicketId').innerText = '#' + ticketNumber;
-        document.getElementById('modalTicketSubject').innerText = subject;
-        modal.dataset.ticketId = ticketId;
-        modal.style.display = 'flex';
-    }
-
-    function closeModal() { 
-        modal.style.display = 'none'; 
-    }
-
-    function simpanAssignment() {
-        const ticketId = modal.dataset.ticketId;
-        const technicianId = document.getElementById('technicianSelect').value;
-        
-        if (!technicianId) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Pilih Teknisi!',
-                text: 'Silakan pilih teknisi sebelum menyimpan.',
-                confirmButtonColor: '#d62828'
-            });
-            return;
-        }
-
-        // Find selected technician data
-        const selectedTech = activeTechnicians.find(t => t.id == technicianId);
-        const technicianName = selectedTech?.name || 'Teknisi';
-
-        closeModal();
-        Swal.fire({ 
-            icon: 'success', 
-            title: 'Berhasil!', 
-            text: `Tiket telah ditugaskan ke ${technicianName}.`, 
-            timer: 2000, 
-            showConfirmButton: false, 
-            confirmButtonColor: '#d62828',
-            didClose: () => {
-                loadDashboard();
-            }
-        });
-    }
-
-    // Load dashboard and technicians on page load
+    // Load dashboard on page load
     document.addEventListener('DOMContentLoaded', function() {
-        loadActiveTechnicians();
         loadDashboard();
     });
 </script>

@@ -29,7 +29,7 @@
             <thead>
                 <tr>
                     <th width="35%">Tiket Info</th>
-                    <th width="20%">Lokasi</th>
+                    <th width="20%">Divisi</th>
                     <th width="15%">Kategori</th>
                     <th width="15%">Waktu</th>
                     <th width="15%">Aksi</th>
@@ -71,9 +71,14 @@
                     teknisi...</div>
             </div>
 
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: #555;">Catatan (Opsional):</label>
+                <textarea id="assignNotes" class="form-textarea" placeholder="Contoh: Assigned untuk penanganan segera" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 70px;"></textarea>
+            </div>
+
             <div class="modal-footer">
                 <button class="btn-cancel" id="assignCancelBtn">Batal</button>
-                <button class="btn-save" id="assignSaveBtn">Simpan & Kirim</button>
+                <button class="btn-save" id="assignSaveBtn">Assign</button>
             </div>
         </div>
     </div>
