@@ -92,6 +92,6 @@
         window.TICKET_API_BASE = '{{ url('/api/tickets') }}';
         window.TECHNICIANS_API = '{{ url('/api/users/by-role/technician') }}';
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <script src="{{ asset('js/helpdesk-incoming.js') }}?v={{ time() }}"></script>
 @endsection
