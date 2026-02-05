@@ -260,7 +260,6 @@
       "master-admin": "role-admin",
       admin: "role-admin",
       helpdesk: "role-admin",
-      supervisor: "role-admin",
       technician: "role-tech",
       requester: "role-user",
     };
@@ -272,7 +271,6 @@
       "master-admin": "Master Admin",
       admin: "Admin",
       helpdesk: "Helpdesk",
-      supervisor: "Supervisor",
       technician: "Technician",
       requester: "Requester",
     };

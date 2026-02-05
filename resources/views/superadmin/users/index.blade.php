@@ -100,7 +100,6 @@
                         <select class="form-select" id="uRole">
                             <option value="technician">Technician</option>
                             <option value="helpdesk">Helpdesk</option>
-                            <option value="supervisor">Supervisor</option>
                         </select>
                     </div>
                 </div>
@@ -348,7 +347,6 @@
                 'master-admin': 'role-admin',
                 'admin': 'role-admin',
                 'helpdesk': 'role-admin',
-                'supervisor': 'role-admin',
                 'technician': 'role-tech',
                 'requester': 'role-user'
             };
@@ -361,7 +359,6 @@
                 'master-admin': 'Master Admin',
                 'admin': 'Admin',
                 'helpdesk': 'Helpdesk',
-                'supervisor': 'Supervisor',
                 'technician': 'Technician',
                 'requester': 'Requester'
             };

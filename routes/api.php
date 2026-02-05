@@ -38,7 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
 // ============================================================================
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->middleware('role:master-admin|supervisor|helpdesk|technician|requester');
+        ->middleware('role:master-admin|helpdesk|technician|requester');
 });
 
 // ============================================================================
@@ -72,7 +72,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/technician/completed-tickets', [TicketController::class, 'technicianCompletedTickets'])
         ->middleware('role:technician');
 
-    // Ticket Assignment (Helpdesk/Supervisor)
+    // Ticket Assignment (Helpdesk)
     Route::post('/tickets/{ticket}/assign', [TicketController::class, 'assign'])
         ->middleware('permission:ticket.assign');
 
@@ -86,12 +86,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/tickets/{ticket}/solve', [TicketController::class, 'solve'])
         ->middleware('permission:ticket.resolve');
 
-    // Helpdesk/Supervisor Actions
+    // Helpdesk Actions
     Route::post('/tickets/{ticket}/unresolve', [TicketController::class, 'unresolve'])
         ->middleware('permission:ticket.assign');
     
     Route::post('/tickets/{ticket}/close', [TicketController::class, 'close'])
-        ->middleware('permission:ticket.close');
+        ->middleware('role:helpdesk|requester');
 });
 
 // ============================================================================

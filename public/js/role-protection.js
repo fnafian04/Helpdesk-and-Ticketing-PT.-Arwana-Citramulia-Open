@@ -40,7 +40,7 @@ async function requireTechnicianRole() {
     const authenticated = await TokenManager.requireAuth();
     if (!authenticated) return;
     
-    const allowedRoles = ['technician', 'supervisor', 'master-admin'];
+    const allowedRoles = ['technician', 'master-admin'];
     const hasPermission = await TokenManager.requireRole(allowedRoles);
     if (!hasPermission) {
         return false;
@@ -55,22 +55,7 @@ async function requireHelpdeskRole() {
     const authenticated = await TokenManager.requireAuth();
     if (!authenticated) return;
     
-    const allowedRoles = ['helpdesk', 'supervisor', 'master-admin'];
-    const hasPermission = await TokenManager.requireRole(allowedRoles);
-    if (!hasPermission) {
-        return false;
-    }
-    return true;
-}
-
-/**
- * Require Supervisor Role
- */
-async function requireSupervisorRole() {
-    const authenticated = await TokenManager.requireAuth();
-    if (!authenticated) return;
-    
-    const allowedRoles = ['supervisor', 'master-admin'];
+    const allowedRoles = ['helpdesk', 'master-admin'];
     const hasPermission = await TokenManager.requireRole(allowedRoles);
     if (!hasPermission) {
         return false;

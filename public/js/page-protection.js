@@ -84,7 +84,6 @@ function displayUserInfo() {
 function formatRoleName(roleName) {
     const roleMap = {
         'master-admin': 'Super Admin',
-        'supervisor': 'Supervisor',
         'helpdesk': 'Helpdesk',
         'technician': 'Teknisi',
         'requester': 'User'

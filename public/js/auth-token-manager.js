@@ -226,8 +226,6 @@ window.TokenManager = window.TokenManager || {
         // Check role dan redirect
         if (this.hasRole('master-admin')) {
             window.location.href = '/dashboard/superadmin';
-        } else if (this.hasRole('supervisor')) {
-            window.location.href = '/dashboard/supervisor';
         } else if (this.hasRole('helpdesk')) {
             window.location.href = '/dashboard/helpdesk';
         } else if (this.hasRole('technician')) {
@@ -253,8 +251,6 @@ window.TokenManager = window.TokenManager || {
 
         if (this.hasRole('master-admin')) {
             return '/dashboard/superadmin';
-        } else if (this.hasRole('supervisor')) {
-            return '/dashboard/supervisor';
         } else if (this.hasRole('helpdesk')) {
             return '/dashboard/helpdesk';
         } else if (this.hasRole('technician')) {

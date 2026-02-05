@@ -13,7 +13,7 @@ Laravel 10-based API ticketing system for PT Arwana with role-based permission m
 
 ### Key Data Flow
 1. Users authenticate via Sanctum tokens (email or phone + password)
-2. Tickets are created by requesters, assigned by helpdesk/supervisor to technicians
+2. Tickets are created by requesters, assigned by helpdesk to technicians
 3. Technicians confirm → progress → resolve; helpdesk/admin can unresolve or close
 4. All state changes logged in `TicketLog` model
 5. Solutions and comments tracked in `TicketSolution` and `TicketComment` models
@@ -21,10 +21,10 @@ Laravel 10-based API ticketing system for PT Arwana with role-based permission m
 ## Ticket Workflow & Status States
 **Status Progression**: OPEN → ASSIGNED → IN PROGRESS → RESOLVED → CLOSED
 
-- **OPEN**: New ticket from requester. Actions: Assign (by helpdesk/supervisor/admin)
+- **OPEN**: New ticket from requester. Actions: Assign (by helpdesk/admin)
 - **ASSIGNED**: Ticket assigned to technician. Actions: Confirm (technician) → IN PROGRESS, or Reject (technician) → OPEN
 - **IN PROGRESS**: Technician working. Actions: Resolve (technician) → RESOLVED, or Unresolve (by helpdesk/admin)
-- **RESOLVED**: Solution provided. Actions: Close (by admin/supervisor)
+- **RESOLVED**: Solution provided. Actions: Close (by admin)
 - **CLOSED**: Final state. Read-only for audit.
 
 Reference: [TICKET_WORKFLOW.md](TICKET_WORKFLOW.md)
@@ -62,10 +62,10 @@ Access: `http://localhost:8000`
 Routes use `middleware('permission:xyz')` with Spatie permissions:
 - `ticket.create`: Requester (create ticket)
 - `ticket.view`: All authenticated users (filtered by policy)
-- `ticket.assign`: Supervisor/Admin/Helpdesk
+- `ticket.assign`: Admin/Helpdesk
 - `ticket.change_status`: Technician (confirm/reject)
 - `ticket.resolve`: Technician
-- `ticket.close`: Admin/Supervisor
+- `ticket.close`: Admin/Helpdesk/Requester (requester hanya bisa close ticket milik mereka sendiri yang status RESOLVED)
 - `user.view`: Helpdesk+
 - `user.view-all`, `user.create`, `user.update`: Master Admin only
 

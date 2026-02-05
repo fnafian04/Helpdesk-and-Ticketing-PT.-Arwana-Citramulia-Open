@@ -53,11 +53,6 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         return view('dashboard.technician');
     })->name('technician');
     
-    // Dashboard Supervisor
-    Route::get('/supervisor', function () {
-        return view('dashboard.supervisor');
-    })->name('supervisor');
-    
     // Dashboard Super Admin
     Route::get('/superadmin', function () {
         return view('dashboard.superadmin');

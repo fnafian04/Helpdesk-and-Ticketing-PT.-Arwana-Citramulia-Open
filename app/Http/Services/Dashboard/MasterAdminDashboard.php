@@ -82,7 +82,6 @@ class MasterAdminDashboard
     {
         $roles = [
             'master_admin' => 'master-admin',
-            'supervisor' => 'supervisor',
             'helpdesk' => 'helpdesk',
             'technician' => 'technician',
             'requester' => 'requester',

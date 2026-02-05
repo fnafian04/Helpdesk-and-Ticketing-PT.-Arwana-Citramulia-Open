@@ -40,7 +40,7 @@ class UpdateUserRequest extends FormRequest
             'phone' => 'sometimes|required|string|max:20|unique:users,phone,' . $userId,
             'department_id' => 'nullable|exists:departments,id',
             'roles' => 'sometimes|required|array|min:1',
-            'roles.*' => 'required|string|in:helpdesk,technician,supervisor',
+            'roles.*' => 'required|string|in:helpdesk,technician',
             'is_active' => 'sometimes|boolean',
         ];
     }
@@ -56,7 +56,7 @@ class UpdateUserRequest extends FormRequest
             'phone.required' => 'Nomor telepon wajib diisi',
             'phone.unique' => 'Nomor telepon sudah terdaftar',
             'roles.required' => 'Role wajib dipilih minimal satu',
-            'roles.*.in' => 'Role harus salah satu dari: helpdesk, technician, supervisor',
+            'roles.*.in' => 'Role harus salah satu dari: helpdesk, technician',
             'department_id.exists' => 'Department yang dipilih tidak valid',
         ];
     }

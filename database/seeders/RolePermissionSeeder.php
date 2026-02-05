@@ -41,8 +41,6 @@ class RolePermissionSeeder extends Seeder
         $requester = Role::firstOrCreate(['name' => 'requester']);
         $helpdesk  = Role::firstOrCreate(['name' => 'helpdesk']);
         $tech      = Role::firstOrCreate(['name' => 'technician']);
-        $supervisor= Role::firstOrCreate(['name' => 'supervisor']);
-        $manager   = Role::firstOrCreate(['name' => 'manager']);
         $admin     = Role::firstOrCreate(['name' => 'master-admin']);
 
         $admin->givePermissionTo([
@@ -72,7 +70,8 @@ class RolePermissionSeeder extends Seeder
             'ticket.create',
             'ticket.view',
             'ticket.view.own',
-            'ticket.comment'
+            'ticket.comment',
+            'ticket.close'
         ]);
 
         $helpdesk->givePermissionTo([
@@ -91,15 +90,6 @@ class RolePermissionSeeder extends Seeder
             'ticket.change_status',
             'ticket.resolve',
             'ticket.comment'
-        ]);
-
-        $supervisor->givePermissionTo([
-            'ticket.view',
-            'ticket.view.all',
-            'ticket.assign',
-            'ticket.escalate',
-            'ticket.change_status',
-            'ticket.view.dashboard'
         ]);
     }
 }

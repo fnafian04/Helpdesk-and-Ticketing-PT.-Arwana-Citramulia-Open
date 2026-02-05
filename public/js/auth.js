@@ -80,8 +80,6 @@ const Auth = {
         // Check role dan redirect
         if (this.hasRole('master-admin')) {
             window.location.href = '/dashboard/superadmin';
-        } else if (this.hasRole('supervisor')) {
-            window.location.href = '/dashboard/supervisor';
         } else if (this.hasRole('helpdesk')) {
             window.location.href = '/helpdesk/incoming';
         } else if (this.hasRole('technician')) {

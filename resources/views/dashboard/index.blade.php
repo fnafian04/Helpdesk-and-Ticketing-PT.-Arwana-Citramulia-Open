@@ -106,16 +106,6 @@
                             </div>
                         @endrole
 
-                        @role('supervisor')
-                            <div class="bg-yellow-50 p-4 rounded mb-4">
-                                <h4 class="font-semibold text-yellow-900">Supervisor Dashboard</h4>
-                                <p class="text-yellow-800">You can manage tickets and approve resolutions</p>
-                                <a href="#" class="mt-2 inline-block text-yellow-600 hover:text-yellow-800">
-                                    View Dashboard →
-                                </a>
-                            </div>
-                        @endrole
-
                         @role('master-admin')
                             <div class="bg-red-50 p-4 rounded mb-4">
                                 <h4 class="font-semibold text-red-900">Admin Dashboard</h4>

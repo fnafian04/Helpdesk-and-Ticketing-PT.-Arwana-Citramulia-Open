@@ -1,7 +1,7 @@
 {
   "info": {
-    "_postman_id": "aeeeb612-22c1-4c93-abaf-22ccce771097",
-    "name": "Ticketing System Arwana - Complete API Collection",
+    "_postman_id": "040a4f15-a0d3-4fd6-acb2-18dba4af1f5c",
+    "name": "Ticketing System Arwana - Complete API Collection Copy",
     "description": "Complete API collection untuk Ticketing System PT Arwana.\n\nIncludes:\n- Authentication (Register, Login, Logout, Me, Get Own Profile)\n- Ticket Management (Create, List, View, Assign, Confirm, Reject, Solve, Unresolve, Close)\n- My Tickets & History (Get Own Tickets, View Completion History, View Technician Resolved Tickets)\n- User Management - Master Admin (List, View, Create, Update, Reset Password)\n- User Access Control (Get by Role, Roles Summary)\n- Department Management (List, Create, Update, Delete)\n- Category Management (List, Create, Update, Delete)\n\nSetup:\n1. Login untuk dapatkan token\n2. Set token di collection variable 'auth_token'\n3. Token akan otomatis digunakan di semua request yang membutuhkan auth",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -22,11 +22,12 @@
                   "    pm.collectionVariables.set('user_id', jsonData.user.id);",
                   "}"
                 ],
-                "type": "text/javascript"
+                "type": "text/javascript",
+                "id": "def810d2-466d-47ca-b324-8cf337e4d86b"
               }
             }
           ],
-          "id": "6555ea5f-4b6a-4795-83c9-c09180cb47a8",
+          "id": "9f86c2a0-d8f7-469a-85b1-82d30a027f85",
           "request": {
             "auth": {
               "type": "noauth"
@@ -71,11 +72,12 @@
                   "    console.log('Token saved:', jsonData.token);",
                   "}"
                 ],
-                "type": "text/javascript"
+                "type": "text/javascript",
+                "id": "f3bc6113-179d-4e47-8d29-627c0847214a"
               }
             }
           ],
-          "id": "65e33c2a-14b7-4764-a707-70a312949ac3",
+          "id": "90246f03-48d5-4f52-ae59-41158a1a335f",
           "request": {
             "auth": {
               "type": "noauth"
@@ -120,11 +122,12 @@
                   "    console.log('Master Admin Token saved:', jsonData.token);",
                   "}"
                 ],
-                "type": "text/javascript"
+                "type": "text/javascript",
+                "id": "6be536bb-e0db-49ab-8b76-b379e2ac40f4"
               }
             }
           ],
-          "id": "4d2999e4-a002-4ab6-9d9d-4a74be6585d1",
+          "id": "47f0508d-2b94-4dc9-a847-1e6adaa22481",
           "request": {
             "auth": {
               "type": "noauth"
@@ -157,7 +160,7 @@
         },
         {
           "name": "Get Current User (Me)",
-          "id": "4a1a68ef-39cd-4d4e-a711-8225780badd8",
+          "id": "11560967-8ce8-4c9e-819b-8e528e63bbb8",
           "request": {
             "method": "GET",
             "header": [],
@@ -177,7 +180,7 @@
         },
         {
           "name": "Get User Info",
-          "id": "0961c9ce-9033-4b5a-96ef-d7bea4c175a7",
+          "id": "4eed6603-ce31-4d05-a99e-da828a9f9a35",
           "request": {
             "method": "GET",
             "header": [],
@@ -197,7 +200,7 @@
         },
         {
           "name": "Validate Token",
-          "id": "3c7f2d8e-4b5a-4c9f-8d6e-9f1a2b3c4d5e",
+          "id": "e9b48b6e-9724-45ff-9422-eb5234ddd39e",
           "request": {
             "method": "GET",
             "header": [],
@@ -227,11 +230,12 @@
                   "    console.log('Token cleared');",
                   "}"
                 ],
-                "type": "text/javascript"
+                "type": "text/javascript",
+                "id": "89bcb268-f4bd-4606-b6bb-1fc7433145f1"
               }
             }
           ],
-          "id": "f4eba9da-6dcf-41cb-8a0b-246b59ce9724",
+          "id": "6fd040b2-a1a5-483f-a75b-c764f942bdfa",
           "request": {
             "method": "POST",
             "header": [],
@@ -250,7 +254,7 @@
           "response": []
         }
       ],
-      "id": "cdd9c5fd-cc26-4ffe-b96e-dd09ba296c72",
+      "id": "e4509c39-0b56-4d6a-85e6-52abb2f9660f",
       "description": "Endpoint untuk authentication:\n- Register user baru\n- Login (email atau phone)\n- Get current user info\n- Logout"
     },
     {
@@ -258,7 +262,7 @@
       "item": [
         {
           "name": "Create Ticket",
-          "id": "a43db372-e458-4057-83db-c19e6b29cf53",
+          "id": "fbc4f6f3-3d9a-4ea0-bc13-a87401125e07",
           "request": {
             "method": "POST",
             "header": [
@@ -288,7 +292,7 @@
         },
         {
           "name": "List Tickets",
-          "id": "bfa9aac6-6537-4039-8c41-98e57f7c2371",
+          "id": "e91ed4c0-af71-4249-9dfc-a117323bff30",
           "request": {
             "method": "GET",
             "header": [],
@@ -340,13 +344,13 @@
                 }
               ]
             },
-            "description": "List semua tickets dengan pagination dan filter.\n\nPermission: ticket.view\n\nFilters:\n- status: open, in_progress, resolved, closed\n- priority: low, medium, high, critical\n- category_id: Filter by category\n- assigned_to: Filter by technician ID\n- search: Search keyword\n\nNote: User hanya bisa lihat ticket sesuai role:\n- Requester: Hanya ticket sendiri\n- Technician: Ticket yang di-assign\n- Admin: Semua ticket"
+            "description": "List semua tickets dengan pagination dan filter.\n\nPermission: ticket.view\n\nFilters:\n- status: open, in_progress, resolved, closed\n- priority: low, medium, high, critical\n- category_id: Filter by category\n- assigned_to: Filter by technician ID\n- search: Search keyword\n\nNote: User hanya bisa lihat ticket sesuai role:\n- Requester: Hanya ticket sendiri\n- Technician: Ticket yang di-assign\n- Supervisor/Admin: Semua ticket"
           },
           "response": []
         },
         {
           "name": "Get Ticket Detail",
-          "id": "5c6b69cf-8303-465a-a719-04683d4c4f16",
+          "id": "51c6b8b8-2b0d-43bd-858a-996080960180",
           "request": {
             "method": "GET",
             "header": [],
@@ -367,7 +371,7 @@
         },
         {
           "name": "Assign Ticket to Technician",
-          "id": "e9372223-e76a-4b51-9c0f-cdf0e8923643",
+          "id": "d9004b7e-c83d-4c20-be1b-eb15d517d70c",
           "request": {
             "method": "POST",
             "header": [
@@ -393,13 +397,13 @@
                 "assign"
               ]
             },
-            "description": "Assign ticket ke technician oleh helpdesk.\n\nPermission: ticket.assign (helpdesk/admin)\n\nWorkflow:\n- Ticket status: Open → Assigned\n- Technician yang di-assign harus confirm atau reject ticket\n\nRequired:\n- assigned_to: User ID technician\n\nOptional:\n- notes: Catatan assignment\n\nResponse:\n- Returns assigned technician info\n- Includes notes and assigned_at timestamp"
+            "description": "Assign ticket ke technician oleh helpdesk.\n\nPermission: ticket.assign (helpdesk/supervisor/admin)\n\nWorkflow:\n- Ticket status: Open → Assigned\n- Technician yang di-assign harus confirm atau reject ticket\n\nRequired:\n- assigned_to: User ID technician\n\nOptional:\n- notes: Catatan assignment\n\nResponse:\n- Returns assigned technician info\n- Includes notes and assigned_at timestamp"
           },
           "response": []
         },
         {
           "name": "Technician Confirm Ticket",
-          "id": "88f4920d-58f5-4a75-afef-d5bb34e32f9a",
+          "id": "da9a8485-56bd-46d3-96c1-4dfb9ea38659",
           "request": {
             "method": "POST",
             "header": [
@@ -431,7 +435,7 @@
         },
         {
           "name": "Technician Reject Ticket",
-          "id": "3d289dc4-6d09-4271-b7fd-8098e423f73b",
+          "id": "8e52c635-c82f-4cf5-9281-357f85526c54",
           "request": {
             "method": "POST",
             "header": [
@@ -463,7 +467,7 @@
         },
         {
           "name": "Solve/Resolve Ticket",
-          "id": "52e038b9-fdc5-4c65-ab8e-458f286d753c",
+          "id": "e741a52c-f9e9-4f1e-903b-fc122ec4e6cd",
           "request": {
             "method": "POST",
             "header": [
@@ -495,7 +499,7 @@
         },
         {
           "name": "Helpdesk Unresolve Ticket",
-          "id": "3265bf6a-0ade-4b7f-9f8c-66ccfa30e87a",
+          "id": "65ee0ae4-cb97-4f8d-ae52-397ef7a9e3a3",
           "request": {
             "method": "POST",
             "header": [
@@ -521,13 +525,13 @@
                 "unresolve"
               ]
             },
-            "description": "Helpdesk unresolve ticket jika masalah belum terselesaikan.\n\nPermission: ticket.assign (helpdesk/admin)\n\nWorkflow:\n- Ticket status: Resolved → In Progress\n- Ticket kembali ke technician yang sama untuk dicek ulang\n\nRequired:\n- unresolve_reason: Alasan unresolve (min 10 char)"
+            "description": "Helpdesk unresolve ticket jika masalah belum terselesaikan.\n\nPermission: ticket.assign (helpdesk/supervisor/admin)\n\nWorkflow:\n- Ticket status: Resolved → In Progress\n- Ticket kembali ke technician yang sama untuk dicek ulang\n\nRequired:\n- unresolve_reason: Alasan unresolve (min 10 char)"
           },
           "response": []
         },
         {
           "name": "Close Ticket",
-          "id": "ebc2c648-755d-4cd2-a0df-301f45bc3ae5",
+          "id": "6e785d0a-7763-427e-a425-286cd606ed18",
           "request": {
             "method": "POST",
             "header": [
@@ -553,13 +557,13 @@
                 "close"
               ]
             },
-            "description": "Close ticket setelah resolved dan masalah benar-benar selesai.\n\nPermission: ticket.close (helpdesk/admin/requester)\n\nWorkflow:\n- Ticket status: Resolved → Closed\n- Ticket tidak bisa diubah lagi setelah closed\n- Requester hanya bisa close ticket mereka sendiri dengan status RESOLVED\n\nOptional:\n- closing_notes: Catatan penutupan ticket"
+            "description": "Close ticket setelah resolved dan masalah benar-benar selesai.\n\nPermission: ticket.close (helpdesk/admin/supervisor)\n\nWorkflow:\n- Ticket status: Resolved → Closed\n- Ticket tidak bisa diubah lagi setelah closed\n\nOptional:\n- closing_notes: Catatan penutupan ticket"
           },
           "response": []
         },
         {
           "name": "Get My Tickets",
-          "id": "f8c98661-5d8e-41f3-b21e-06801c75e331",
+          "id": "eb2396c6-f828-41a2-aac8-7a938f06e78e",
           "request": {
             "method": "GET",
             "header": [],
@@ -579,7 +583,7 @@
         },
         {
           "name": "Get Ticket Completion History",
-          "id": "8177dd6e-6441-406f-83a3-0fdee095f5f1",
+          "id": "3f5011d5-e642-4200-b3fc-999274b832e6",
           "request": {
             "method": "GET",
             "header": [],
@@ -601,7 +605,7 @@
         },
         {
           "name": "Get Ticket Logs",
-          "id": "b8bd5f1a-40d1-4f7d-9b35-2c8e0ddab2f4",
+          "id": "0c81e29b-4421-4cd3-ad22-b4a9218aac21",
           "request": {
             "method": "GET",
             "header": [],
@@ -623,7 +627,7 @@
         },
         {
           "name": "Get Technician Resolved Tickets",
-          "id": "5714aed2-d2df-4a81-b1d3-b7bffe38041a",
+          "id": "9a502f60-0d59-4967-a3cd-3a14ffd0c896",
           "request": {
             "method": "GET",
             "header": [],
@@ -639,13 +643,13 @@
                 "resolved-tickets"
               ]
             },
-            "description": "Melihat semua ticket yang telah diselesaikan oleh seorang technician.\n\nPermission: user.view (helpdesk, admin)\n\nPath Parameters:\n- user_id: ID technician user\n\nResponse:\n- message: Status message\n- data:\n  - technician_id: ID teknisi\n  - technician_name: Nama teknisi\n  - total_resolved: Total ticket yang diselesaikan\n  - resolved_tickets: Array of completion history records\n    - id: History ID\n    - ticket_id: ID ticket\n    - resolved_at: Waktu penyelesaian\n    - solution_text: Solusi yang diberikan\n    - ticket: Object berisi ticket info (ticket_number, subject, status)\n\nGunakan endpoint ini untuk melihat performa technician - berapa banyak ticket yang sudah diselesaikan."
+            "description": "Melihat semua ticket yang telah diselesaikan oleh seorang technician.\n\nPermission: user.view (helpdesk, supervisor, admin)\n\nPath Parameters:\n- user_id: ID technician user\n\nResponse:\n- message: Status message\n- data:\n  - technician_id: ID teknisi\n  - technician_name: Nama teknisi\n  - total_resolved: Total ticket yang diselesaikan\n  - resolved_tickets: Array of completion history records\n    - id: History ID\n    - ticket_id: ID ticket\n    - resolved_at: Waktu penyelesaian\n    - solution_text: Solusi yang diberikan\n    - ticket: Object berisi ticket info (ticket_number, subject, status)\n\nGunakan endpoint ini untuk melihat performa technician - berapa banyak ticket yang sudah diselesaikan."
           },
           "response": []
         },
         {
           "name": "Get Technician Completed Tickets",
-          "id": "fe73b8d1-9c4e-4f2f-8b9a-2d1e0c3a5f7b",
+          "id": "42b86728-cd81-4e92-8a75-fea68a560c57",
           "request": {
             "method": "GET",
             "header": [],
@@ -703,7 +707,7 @@
         },
         {
           "name": "Get Technician Task",
-          "id": "6a517e06-b205-4838-bf75-1294d3056231",
+          "id": "340a4e96-1d08-4cb0-9213-09eb3143a1a2",
           "request": {
             "method": "GET",
             "header": [],
@@ -765,7 +769,7 @@
           "response": []
         }
       ],
-      "id": "d2825526-10a5-48e5-bfa9-78b571ff0e31",
+      "id": "879b9fef-581f-4550-8609-bd3640e99dba",
       "description": "Endpoint untuk ticket management:\n\nWorkflow:\n1. Requester: Create ticket (status: Open)\n2. Helpdesk: Assign ticket ke technician (status: Assigned)\n3. Technician: Confirm atau Reject ticket\n   - Confirm: status → In Progress\n   - Reject: status → Open (assignment dihapus)\n4. Technician: Resolve ticket (status: Resolved)\n5. Helpdesk: Close atau Unresolve ticket\n   - Close: status → Closed (final)\n   - Unresolve: status → In Progress (untuk dicek ulang)\n\nEndpoints:\n- Create ticket\n- List tickets dengan filter\n- View ticket detail\n- Assign ke technician\n- Confirm ticket (technician)\n- Reject ticket (technician)\n- Resolve ticket (technician)\n- Unresolve ticket (helpdesk)\n- Close ticket (helpdesk)"
     },
     {
@@ -773,7 +777,7 @@
       "item": [
         {
           "name": "Get Available Roles",
-          "id": "a98e4f74-87e2-479a-9726-87663f1f4bd1",
+          "id": "531401b7-366c-4075-8d34-aeefc4704a08",
           "request": {
             "method": "GET",
             "header": [],
@@ -788,13 +792,13 @@
                 "available-roles"
               ]
             },
-            "description": "Mendapatkan list role yang tersedia untuk assignment.\n\nRole: master-admin only\n\nResponse: [\"helpdesk\", \"technician\"]"
+            "description": "Mendapatkan list role yang tersedia untuk assignment.\n\nRole: master-admin only\n\nResponse: [\"helpdesk\", \"technician\", \"supervisor\"]"
           },
           "response": []
         },
         {
           "name": "Get Users by Role",
-          "id": "6374dc2e-b391-4930-8504-7ebc386ad959",
+          "id": "11f1ebbd-9fea-4fb4-a819-5a3acff072ff",
           "request": {
             "method": "GET",
             "header": [],
@@ -810,13 +814,13 @@
                 "technician"
               ]
             },
-            "description": "Mendapatkan semua user dengan role tertentu.\n\nRole: master-admin only\n\nPath Parameters:\n- roleName: helpdesk, technician, requester, manager\n\nResponse:\n- message: Status message\n- role: Role yang di-filter\n- count: Jumlah user dengan role tersebut\n- data: Array of users dengan role tersebut"
+            "description": "Mendapatkan semua user dengan role tertentu.\n\nRole: master-admin only\n\nPath Parameters:\n- roleName: helpdesk, technician, supervisor, requester, manager\n\nResponse:\n- message: Status message\n- role: Role yang di-filter\n- count: Jumlah user dengan role tersebut\n- data: Array of users dengan role tersebut"
           },
           "response": []
         },
         {
           "name": "Get Roles Summary",
-          "id": "f235f269-a331-45e8-abe3-9355d1327d4f",
+          "id": "01e7dc88-ef8f-4675-8f80-df0dbc4d1551",
           "request": {
             "method": "GET",
             "header": [],
@@ -837,7 +841,7 @@
         },
         {
           "name": "List All Users",
-          "id": "9a651ca0-b1b3-412a-b835-48aada53c7fd",
+          "id": "2811dcbe-2373-4d28-abf8-d374a9484d1c",
           "request": {
             "method": "GET",
             "header": [],
@@ -879,13 +883,13 @@
                 }
               ]
             },
-            "description": "List semua users dengan pagination dan filter.\n\nRole: master-admin only\n\nQuery Parameters:\n- page: Page number\n- per_page: Items per page (default: 15)\n- role: Filter by role (helpdesk, technician)\n- department_id: Filter by department\n- search: Search by name, email, or phone",
+            "description": "List semua users dengan pagination dan filter.\n\nRole: master-admin only\n\nQuery Parameters:\n- page: Page number\n- per_page: Items per page (default: 15)\n- role: Filter by role (helpdesk, technician, supervisor)\n- department_id: Filter by department\n- search: Search by name, email, or phone"
           },
           "response": []
         },
         {
           "name": "Get User Detail",
-          "id": "11127d8f-cb66-4617-a790-5502412926d2",
+          "id": "ed909bf4-b112-4203-9ff0-fadd7c88d8c7",
           "request": {
             "method": "GET",
             "header": [],
@@ -906,7 +910,7 @@
         },
         {
           "name": "Get Active Technicians",
-          "id": "e901ab84-6e91-4615-bbdc-0643f8b791b8",
+          "id": "a48dd4f4-38a1-4a28-8bcd-6b9b4f4b9a35",
           "request": {
             "method": "GET",
             "header": [],
@@ -927,7 +931,7 @@
         },
         {
           "name": "Create User",
-          "id": "18838449-179d-4e0e-877c-517976710ce4",
+          "id": "dfb0dd7a-4477-4b5b-9a7f-b8a64985c024",
           "request": {
             "method": "POST",
             "header": [
@@ -951,13 +955,13 @@
                 "users"
               ]
             },
-            "description": "Create user baru dengan role assignment.\n\nRole: master-admin only\n\nRequired:\n- name: Nama lengkap (max 100 char)\n- email: Email unique\n- phone: Phone unique (max 20 char)\n- password: Min 8 characters\n- roles: Array of roles [\"helpdesk\", \"technician\"]\n\nOptional:\n- department_id: ID department"
+            "description": "Create user baru dengan role assignment.\n\nRole: master-admin only\n\nRequired:\n- name: Nama lengkap (max 100 char)\n- email: Email unique\n- phone: Phone unique (max 20 char)\n- password: Min 8 characters\n- roles: Array of roles [\"helpdesk\", \"technician\", \"supervisor\"]\n\nOptional:\n- department_id: ID department"
           },
           "response": []
         },
         {
           "name": "Create User - Multiple Roles",
-          "id": "68427c0b-7946-4c91-a824-4da53c3e3622",
+          "id": "d02d9da2-5322-4d0c-974e-d9ba84532c2c",
           "request": {
             "method": "POST",
             "header": [
@@ -987,7 +991,7 @@
         },
         {
           "name": "Update User",
-          "id": "9ea968c3-208f-46fc-8195-4e75dd0a7808",
+          "id": "37e0ced4-6b9b-4eb6-87dd-359df1f46ae1",
           "request": {
             "method": "PUT",
             "header": [
@@ -1018,7 +1022,7 @@
         },
         {
           "name": "Update User - Partial",
-          "id": "53e8c0b5-4cc5-4e07-ac0f-e643f3d2987c",
+          "id": "53ab36f4-63c1-4c47-b176-d2e5ec466403",
           "request": {
             "method": "PUT",
             "header": [
@@ -1049,7 +1053,7 @@
         },
         {
           "name": "Reset User Password",
-          "id": "89509f7d-9d08-4bca-9385-9a350c7a9b8a",
+          "id": "4d4038ff-d3a3-410c-9834-07b9bde0afc5",
           "request": {
             "method": "POST",
             "header": [
@@ -1080,7 +1084,7 @@
           "response": []
         }
       ],
-      "id": "f380a677-eafa-44c9-aa6e-72c8cd037346",
+      "id": "f1d31d7d-abf2-42e3-a48b-99a98ffdd3f5",
       "description": "Endpoint untuk user management (Master Admin only):\n- List users\n- Get users by specific role\n- Get roles summary\n- Create user dengan role\n- Update user data & roles\n- Reset password\n\nProtection:\n- Master-admin user tidak bisa di-edit/reset"
     },
     {
@@ -1088,7 +1092,7 @@
       "item": [
         {
           "name": "List All Departments",
-          "id": "c1e75c20-1dd6-4e1a-bc1b-73a06992ea55",
+          "id": "93b6be42-f981-464c-a9bd-edb5991ffc0e",
           "request": {
             "method": "GET",
             "header": [
@@ -1121,7 +1125,7 @@
         },
         {
           "name": "Get Department Detail",
-          "id": "fafb5279-4cc2-4d4c-9a96-a1d4259933c5",
+          "id": "f05b9917-1a76-40f6-92e6-efb012788689",
           "request": {
             "method": "GET",
             "header": [
@@ -1148,7 +1152,7 @@
         },
         {
           "name": "Create Department",
-          "id": "abd2488e-2c0b-48b2-9826-02f1b42dc520",
+          "id": "9dca7af6-512c-48c4-9cd5-9f4f7cb0c256",
           "request": {
             "method": "POST",
             "header": [
@@ -1178,7 +1182,7 @@
         },
         {
           "name": "Update Department",
-          "id": "034bb649-144f-4269-a560-1bba796c9a00",
+          "id": "670dda57-6696-4aa3-980d-001fbc944829",
           "request": {
             "method": "PUT",
             "header": [
@@ -1209,7 +1213,7 @@
         },
         {
           "name": "Delete Department",
-          "id": "5a29846a-0746-48e0-9129-a4ed7bac149d",
+          "id": "9552e969-cf32-4696-856e-3c3295c6a770",
           "request": {
             "method": "DELETE",
             "header": [
@@ -1235,7 +1239,7 @@
           "response": []
         }
       ],
-      "id": "62f0a166-133b-4bc1-a506-b89e43a1023f",
+      "id": "54627057-7fa3-4a15-8e21-6bbbdd63e661",
       "description": "Endpoint untuk department management:\n- List departments dengan pencarian (All roles)\n- Get department detail (All roles)\n- Create, Update, Delete departments (Admin & Helpdesk only)\n\nProtection:\n- GET: Semua user yang authenticated\n- POST/PUT/PATCH/DELETE: Hanya Admin & Helpdesk\n- Validasi: Nama departemen harus unique\n- Soft delete protection: Tidak bisa hapus departemen dengan user"
     },
     {
@@ -1243,7 +1247,7 @@
       "item": [
         {
           "name": "List All Categories",
-          "id": "15235d24-8875-48db-88c3-4e54a571c4ee",
+          "id": "c8118ab2-9278-440b-a34d-0b745d055448",
           "request": {
             "method": "GET",
             "header": [
@@ -1276,7 +1280,7 @@
         },
         {
           "name": "Get Category Detail",
-          "id": "32378f40-ca15-40b4-ae2a-c9adb2febb42",
+          "id": "549b50b0-ef0e-4308-b28f-576f2647193a",
           "request": {
             "method": "GET",
             "header": [
@@ -1303,7 +1307,7 @@
         },
         {
           "name": "Create Category",
-          "id": "5ee6207c-855a-43d0-bb0d-5e3e62af1c1d",
+          "id": "4cd13235-cb2a-404a-a0fc-b209f8691d08",
           "request": {
             "method": "POST",
             "header": [
@@ -1333,7 +1337,7 @@
         },
         {
           "name": "Update Category",
-          "id": "6a740b45-118a-4be0-8ab4-50313de2d327",
+          "id": "792f225d-7dad-4dd4-8f9a-a2b519a66330",
           "request": {
             "method": "PUT",
             "header": [
@@ -1364,7 +1368,7 @@
         },
         {
           "name": "Delete Category",
-          "id": "8f549b7c-4704-4f07-b5a2-0401eb3cc88d",
+          "id": "6b330d74-120b-43fe-b997-dc959a2bac92",
           "request": {
             "method": "DELETE",
             "header": [
@@ -1390,12 +1394,12 @@
           "response": []
         }
       ],
-      "id": "4d8246ca-bea5-41b2-9ddc-f3074ef542a3",
+      "id": "eef9be92-e331-40af-8ebe-d0f4ee13c698",
       "description": "Endpoint untuk category management (Manajemen Kategori Tiket):\n- List categories dengan pencarian (Public)\n- Get category detail (Public)\n- Create, Update, Delete categories (Admin & Helpdesk only)\n\nProtection:\n- GET: Public - tidak perlu auth\n- POST/PUT/PATCH/DELETE: Hanya Admin & Helpdesk\n- Validasi: Nama kategori harus unique\n- Soft delete protection: Tidak bisa hapus kategori dengan tiket\n\nUse Cases:\n- Master Admin & Helpdesk: Kelola daftar kategori tiket untuk sistem"
     },
     {
       "name": "Get Dashboard Data",
-      "id": "ede52aee-0a5e-4296-a976-184905f28e1d",
+      "id": "8735bc07-0feb-4ca9-a6e9-dd37792884d8",
       "request": {
         "method": "GET",
         "header": [
@@ -1432,37 +1436,37 @@
   },
   "variable": [
     {
-      "id": "1935b0bc-74a9-4a39-b260-a9072922be75",
+      "id": "39be0bab-5d5f-4c43-83d8-776225d90f6a",
       "key": "base_url",
       "value": "http://localhost:8000",
       "type": "string"
     },
     {
-      "id": "0016b2e8-aad5-4bb2-945c-3aa2c0b19690",
+      "id": "217194dd-305b-4ea1-b31f-5cdcc829f23b",
       "key": "auth_token",
       "value": "",
       "type": "string"
     },
     {
-      "id": "37e8d9b3-9ba5-45de-ac06-9d4722afcd14",
+      "id": "328f2902-a9ad-40f0-bfcb-26cacb0d5ccb",
       "key": "user_id",
       "value": "",
       "type": "string"
     },
     {
-      "id": "16cff230-bbf1-4d41-9676-2303940e7c0e",
+      "id": "2b2d76ce-28f0-4cf4-9883-e53a465002a0",
       "key": "ticket_id",
       "value": "1",
       "type": "string"
     },
     {
-      "id": "36b14b2c-5c97-4cb7-9dce-5ebc817eb324",
+      "id": "23285ea0-318d-4f9e-8753-9ab2196b14a5",
       "key": "master_admin_email",
       "value": "admin@arwana.com",
       "type": "string"
     },
     {
-      "id": "28dcc089-3e21-4991-9120-fc2d2b42b492",
+      "id": "09326c5a-3541-413a-9a3e-4d32527ee0db",
       "key": "master_admin_password",
       "value": "password123",
       "type": "string"

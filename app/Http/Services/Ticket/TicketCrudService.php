@@ -53,11 +53,15 @@ class TicketCrudService
             'closed_at' => now(),
         ]);
 
+        $logMessage = ($userId === $ticket->requester_id) 
+            ? 'Ticket ditutup oleh requester' 
+            : 'Ticket ditutup oleh helpdesk';
+
         $this->logAction(
             $ticket->id,
             $userId,
             'closed',
-            'Ticket ditutup oleh helpdesk'
+            $logMessage
         );
 
         return $ticket;

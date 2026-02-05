@@ -234,7 +234,20 @@ class TicketController extends Controller
 
     public function close(Ticket $ticket)
     {
-        $this->crudService->closeTicket($ticket, request()->user()->id);
+        $user = request()->user();
+        
+        // Check if user is requester of the ticket and ticket is RESOLVED
+        if ($user->hasRole('requester')) {
+            if ($ticket->requester_id !== $user->id) {
+                return response()->json(['message' => 'Unauthorized - Anda hanya bisa menutup ticket Anda sendiri'], 403);
+            }
+            $ticketStatus = $ticket->ticketStatus->name ?? null;
+            if ($ticketStatus !== 'resolved') {
+                return response()->json(['message' => 'Ticket harus dalam status RESOLVED sebelum ditutup oleh requester'], 422);
+            }
+        }
+        
+        $this->crudService->closeTicket($ticket, $user->id);
 
         return response()->json(['message' => 'Ticket closed']);
     }
