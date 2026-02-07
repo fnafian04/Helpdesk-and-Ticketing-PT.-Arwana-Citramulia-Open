@@ -1,4 +1,4 @@
-@extends('layouts.helpdesk')
+@extends('layouts.requester')
 @section('title', 'Validasi Tiket Resolved')
 
 @section('css')
@@ -289,7 +289,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        const LIST_API_URL = "{{ url('/api/tickets') }}";
+        const LIST_API_URL = "{{ url('/api/my-tickets') }}";
         const ACTION_API_URL = "{{ url('/api/tickets') }}";
         let actionModalInstance = null;
 

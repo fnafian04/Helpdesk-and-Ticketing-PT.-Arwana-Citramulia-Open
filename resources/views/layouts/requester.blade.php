@@ -50,8 +50,12 @@
                 TAPI KECUALI 'tickets/create' (karena sudah punya tombol sendiri di atas).
             --}}
             <a href="{{ route('tickets.index') }}"
-                class="menu-item {{ (Request::is('tickets*') && !Request::is('tickets/create')) ? 'active' : '' }}">
+                class="menu-item {{ (Request::is('tickets*') && !Request::is('tickets/create') && !Request::is('tickets/actions')) ? 'active' : '' }}">
                 <i class="fa-solid fa-list-check"></i> Riwayat Tiket
+            </a>
+
+            <a href="{{ route('tickets.actions') }}" class="menu-item {{ Route::is('tickets.actions') ? 'active' : '' }}">
+                <i class="fa-solid fa-check-double"></i> Action
             </a>
 
             <a href="{{ route('profile') }}" class="menu-item {{ Route::is('profile') ? 'active' : '' }}">

@@ -333,7 +333,7 @@
             <div class="modal-body-custom">
                 <h6
                     style="text-transform: uppercase; font-size: 0.75rem; color: #94a3b8; font-weight: 700; margin-bottom: 15px;">
-                    Tiket Sedang Dikerjakan</h6>
+                    Tiket Dikerjakan</h6>
                 <div id="ticketsList"></div>
             </div>
             <button class="btn-close" onclick="closeDetailModal()">Tutup Detail</button>

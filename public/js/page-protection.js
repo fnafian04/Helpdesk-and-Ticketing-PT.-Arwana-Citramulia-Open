@@ -34,7 +34,44 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Setup logout buttons
     setupLogoutButtons();
+
+    // Periodic revalidation to catch token changes after page load
+    startAuthRevalidation();
 });
+
+const AUTH_CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+let authCheckRunning = false;
+
+async function runAuthCheck() {
+    if (authCheckRunning) return;
+    authCheckRunning = true;
+
+    try {
+        const authenticated = await TokenManager.isAuthenticated();
+        const rolesValid = authenticated ? await TokenManager.validateRoles() : false;
+
+        if (!authenticated || !rolesValid) {
+            console.log('Auth check failed, redirecting to login...');
+            TokenManager.logout();
+            return;
+        }
+    } finally {
+        authCheckRunning = false;
+    }
+}
+
+function startAuthRevalidation() {
+    runAuthCheck();
+
+    setInterval(runAuthCheck, AUTH_CHECK_INTERVAL_MS);
+
+    window.addEventListener('focus', runAuthCheck);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            runAuthCheck();
+        }
+    });
+}
 
 /**
  * Synchronous check for guest pages (use only for login/register pages)

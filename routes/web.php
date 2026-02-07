@@ -64,20 +64,25 @@ Route::prefix('tickets')->name('tickets.')->group(function () {
     
     // List Tickets
     Route::get('/', function () { 
-        return view('tickets.index'); 
+        return view('requester.index'); 
     })->name('index');
+
+    // Actions (Close/Unresolve) for Requester
+    Route::get('/actions', function () {
+        return view('requester.actions');
+    })->name('actions');
     
     // Create Ticket Form
     Route::get('/create', function () { 
-        return view('tickets.create'); 
+        return view('requester.create'); 
     })->name('create');
     
     // Ticket Detail
     // Route::get('/{id}', function ($id) { 
-    //     return view('tickets.show', ['ticketId' => $id]); 
+    //     return view('requester.show', ['ticketId' => $id]); 
     // })->name('show');
     Route::get('/{id}', function ($id) { 
-        return view('tickets.detail', ['ticket_id' => $id]); 
+        return view('requester.detail', ['ticket_id' => $id]); 
     })->name('detail');
 });
 
@@ -172,5 +177,5 @@ Route::prefix('superadmin')->name('superadmin.')->group(function () {
 
 // 8. PROFILE ROUTE
 Route::get('/profile', function () { 
-    return view('tickets.profile'); 
+    return view('requester.profile'); 
 })->name('profile');

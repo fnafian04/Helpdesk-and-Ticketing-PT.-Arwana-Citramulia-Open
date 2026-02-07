@@ -277,8 +277,9 @@ window.TokenManager = window.TokenManager || {
     /**
      * Protect guest pages - redirect to dashboard if authenticated
      */
-    requireGuest() {
-        if (this.isAuthenticated()) {
+    async requireGuest() {
+        const authenticated = await this.isAuthenticated();
+        if (authenticated) {
             this.redirectToDashboard();
             return false;
         }
@@ -289,8 +290,9 @@ window.TokenManager = window.TokenManager || {
      * Require specific role(s)
      * @param {array|string} allowedRoles - Role name or array of role names
      */
-    requireRole(allowedRoles) {
-        if (!this.isAuthenticated()) {
+    async requireRole(allowedRoles) {
+        const authenticated = await this.isAuthenticated();
+        if (!authenticated) {
             window.location.href = '/login';
             return false;
         }

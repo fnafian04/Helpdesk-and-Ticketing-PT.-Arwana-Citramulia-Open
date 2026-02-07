@@ -80,6 +80,6 @@ async function requireMasterAdminRole() {
 /**
  * Check Guest (redirect if authenticated)
  */
-function requireGuest() {
-    TokenManager.requireGuest();
+async function requireGuest() {
+    await TokenManager.requireGuest();
 }
