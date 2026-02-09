@@ -171,7 +171,6 @@
 
                 const result = await response.json();
                 populateDepartmentSelect(result.data);
-                populateFilterDepartment(result.data);
             } catch (error) {
                 console.error('Error fetching departments:', error);
                 document.getElementById('uDept').innerHTML =
@@ -179,7 +178,7 @@
             }
         }
 
-        // Populate Department Select Dropdown (modal form)
+        // Populate Department Select Dropdown
         function populateDepartmentSelect(departments) {
             const select = document.getElementById('uDept');
             select.innerHTML = '<option value="" disabled selected>-- Pilih Departemen --</option>';
@@ -187,38 +186,10 @@
             departments.forEach(dept => {
                 const option = document.createElement('option');
                 option.value = dept.id;
-                option.textContent = dept.name.charAt(0).toUpperCase() + dept.name.slice(1);
+                option.textContent = dept.name.charAt(0).toUpperCase() + dept.name.slice(
+                    1); // Capitalize first letter
                 select.appendChild(option);
             });
-        }
-
-        // Populate Department Filter Dropdown
-        function populateFilterDepartment(departments) {
-            const select = document.getElementById('filterDepartment');
-            select.innerHTML = '<option value="">Semua Departemen</option>';
-
-            departments.forEach(dept => {
-                const option = document.createElement('option');
-                option.value = dept.id;
-                option.textContent = dept.name.charAt(0).toUpperCase() + dept.name.slice(1);
-                select.appendChild(option);
-            });
-        }
-
-        // Helper: get current filter values
-        function getFilterParams() {
-            const params = new URLSearchParams();
-            const search = document.getElementById('searchInput').value.trim();
-            const role = document.getElementById('filterRole').value;
-            const department = document.getElementById('filterDepartment').value;
-            const status = document.getElementById('filterStatus').value;
-
-            if (search) params.append('search', search);
-            if (role) params.append('role', role);
-            if (department) params.append('department_id', department);
-            if (status !== '') params.append('is_active', status);
-
-            return params;
         }
 
         // Fetch Users dari API
@@ -230,12 +201,8 @@
 
             currentPage = page; // Update current page state
 
-            const filterParams = getFilterParams();
-            filterParams.append('page', page);
-            filterParams.append('per_page', perPage);
-
             try {
-                const response = await fetch(`${API_URL}/api/users?${filterParams.toString()}`, {
+                const response = await fetch(`${API_URL}/api/users?page=${page}&per_page=${perPage}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${authToken}`,
@@ -421,36 +388,10 @@
             return nameMap[role] || role;
         }
 
-        // Debounce helper
-        let searchTimeout = null;
-
         // Load users saat halaman dimuat
         document.addEventListener('DOMContentLoaded', function() {
             loadUsers(currentPage, currentPerPage);
-            loadDepartments(); // Load departments for modal dropdown + filter
-
-            // Search input with debounce
-            document.getElementById('searchInput').addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    currentPage = 1;
-                    loadUsers(1, currentPerPage);
-                }, 300);
-            });
-
-            // Filter dropdowns - instant reload
-            document.getElementById('filterRole').addEventListener('change', function() {
-                currentPage = 1;
-                loadUsers(1, currentPerPage);
-            });
-            document.getElementById('filterDepartment').addEventListener('change', function() {
-                currentPage = 1;
-                loadUsers(1, currentPerPage);
-            });
-            document.getElementById('filterStatus').addEventListener('change', function() {
-                currentPage = 1;
-                loadUsers(1, currentPerPage);
-            });
+            loadDepartments(); // Load departments for modal dropdown
         });
 
         // Variable to track edit mode
@@ -816,14 +757,6 @@
                 });
             }
         });
-
-        // Toggle filter visibility (mobile)
-        function toggleFilters() {
-            const filters = document.getElementById('filtersRight');
-            const btn = document.getElementById('btnFilterToggle');
-            filters.classList.toggle('filters-open');
-            btn.classList.toggle('active');
-        }
 
         window.onclick = function(event) {
             if (event.target.classList.contains('modal-overlay')) {
