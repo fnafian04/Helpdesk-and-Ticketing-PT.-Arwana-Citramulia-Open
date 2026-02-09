@@ -476,7 +476,8 @@
             if (!tech.assigned_tickets) {
                 const response = await fetchWithAuth(`${baseUrl}/api/users/${tech.id}/assigned-tickets`);
                 if (!response || !response.ok) {
-                    listContainer.innerHTML = `<div class="text-center text-muted py-3 small">Gagal memuat tiket.</div>`;
+                    listContainer.innerHTML =
+                    `<div class="text-center text-muted py-3 small">Gagal memuat tiket.</div>`;
                     return;
                 }
 

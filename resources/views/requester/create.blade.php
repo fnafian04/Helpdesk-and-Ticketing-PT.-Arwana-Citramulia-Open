@@ -31,13 +31,14 @@
                             <option value="3">Network (Jaringan/Internet)</option>
                             <option value="4">Lainnya</option>
                         </select>
-                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Deskripsi Lengkap</label>
                     <textarea id="description" name="description" class="form-textarea"
-                        placeholder="Jelaskan kronologi masalahnya secara detail. Contoh: Saat menyalakan PC, layar tetap hitam..." required></textarea>
+                        placeholder="Jelaskan kronologi masalahnya secara detail. Contoh: Saat menyalakan PC, layar tetap hitam..."
+                        required></textarea>
                 </div>
 
                 <button type="submit" class="btn-submit" id="btnSubmitTicket">
@@ -71,16 +72,15 @@
                     <span class="detail-label">Waktu</span>
                     <span class="detail-value" id="cTime">-</span>
                 </div>
-                
+
                 <div class="detail-desc" id="cDesc">
-                    </div>
+                </div>
 
                 <div style="margin-top:25px; display:flex; gap:10px;">
-                    <a href="{{ route('tickets.index') }}" 
-                       onclick="try{sessionStorage.removeItem('last_created_ticket')}catch(e){}"
-                       class="btn-submit" 
-                       style="background:#2563eb; width:100%; text-decoration:none;">
-                       <i class="fa-solid fa-list-check"></i> Lihat Riwayat
+                    <a href="{{ route('tickets.index') }}"
+                        onclick="try{sessionStorage.removeItem('last_created_ticket')}catch(e){}" class="btn-submit"
+                        style="background:#2563eb; width:100%; text-decoration:none;">
+                        <i class="fa-solid fa-list-check"></i> Lihat Riwayat
                     </a>
                 </div>
             </div>
