@@ -61,28 +61,33 @@
                     </div>
                 </div>
 
-                <div class="section-title" style="margin-top: 40px;"><i class="fa-solid fa-shield-halved"></i> Keamanan Akun</div>
+                <div class="section-title" style="margin-top: 40px;"><i class="fa-solid fa-shield-halved"></i> Keamanan Akun
+                </div>
 
                 <div class="form-grid">
                     <div class="form-group">
                         <label class="form-label">Password Lama</label>
                         <div class="password-wrapper">
                             <input type="password" class="form-input" id="old_pass" placeholder="Masukkan password lama">
-                            <span class="toggle-password" onclick="togglePass('old_pass', this)"><i class="fa-regular fa-eye"></i></span>
+                            <span class="toggle-password" onclick="togglePass('old_pass', this)"><i
+                                    class="fa-regular fa-eye"></i></span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Password Baru</label>
                         <div class="password-wrapper">
-                            <input type="password" class="form-input" id="new_pass" placeholder="Biarkan kosong jika tidak diubah">
-                            <span class="toggle-password" onclick="togglePass('new_pass', this)"><i class="fa-regular fa-eye"></i></span>
+                            <input type="password" class="form-input" id="new_pass"
+                                placeholder="Biarkan kosong jika tidak diubah">
+                            <span class="toggle-password" onclick="togglePass('new_pass', this)"><i
+                                    class="fa-regular fa-eye"></i></span>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Konfirmasi Password</label>
                         <div class="password-wrapper">
                             <input type="password" class="form-input" id="conf_pass" placeholder="Ulangi password baru">
-                            <span class="toggle-password" onclick="togglePass('conf_pass', this)"><i class="fa-regular fa-eye"></i></span>
+                            <span class="toggle-password" onclick="togglePass('conf_pass', this)"><i
+                                    class="fa-regular fa-eye"></i></span>
                         </div>
                     </div>
                 </div>

@@ -61,7 +61,9 @@ document.addEventListener("DOMContentLoaded", function () {
     if (noData) noData.style.display = "none";
 
     try {
-      const searchParam = searchQuery ? `&search=${encodeURIComponent(searchQuery)}` : "";
+      const searchParam = searchQuery
+        ? `&search=${encodeURIComponent(searchQuery)}`
+        : "";
       const apiUrl = `${API_URL}/api/tickets?page=${page}&per_page=${rowsPerPage}${searchParam}`;
       const res = await fetchWithAuth(apiUrl);
 
@@ -231,7 +233,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let searchTimeout;
     searchInput.addEventListener("input", function (e) {
       const q = e.target.value.trim();
-      
+
       // Debounce search to avoid too many requests
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(() => {

@@ -116,15 +116,15 @@
                                 </thead>
                                 <tbody>
                                     ${data.latest_tickets.map(ticket => `
-                                            <tr>
-                                                <td><strong>${ticket.ticket_number}</strong></td>
-                                                <td>${ticket.subject.substring(0, 30)}${ticket.subject.length > 30 ? '...' : ''}</td>
-                                                <td>${ticket.requester?.name || 'Unknown'}</td>
-                                                <td>${ticket.category}</td>
-                                                <td><span class="badge ${getStatusBadgeClass(ticket.status)}">${ticket.status}</span></td>
-                                                <td>${new Date(ticket.created_at).toLocaleString('id-ID')}</td>
-                                            </tr>
-                                        `).join('')}
+                                                <tr>
+                                                    <td><strong>${ticket.ticket_number}</strong></td>
+                                                    <td>${ticket.subject.substring(0, 30)}${ticket.subject.length > 30 ? '...' : ''}</td>
+                                                    <td>${ticket.requester?.name || 'Unknown'}</td>
+                                                    <td>${ticket.category}</td>
+                                                    <td><span class="badge ${getStatusBadgeClass(ticket.status)}">${ticket.status}</span></td>
+                                                    <td>${new Date(ticket.created_at).toLocaleString('id-ID')}</td>
+                                                </tr>
+                                            `).join('')}
                                 </tbody>
                             </table>
                         </div>

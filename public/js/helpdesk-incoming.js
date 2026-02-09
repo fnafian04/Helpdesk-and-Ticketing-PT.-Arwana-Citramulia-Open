@@ -124,7 +124,11 @@ document.addEventListener("DOMContentLoaded", function () {
         .querySelectorAll("button.btn-reject-ticket[data-ticket-id]")
         .forEach((btn) => {
           btn.addEventListener("click", function () {
-            rejectIncomingTicket(this.dataset.ticketId, this.dataset.ticketNumber, this.dataset.subject);
+            rejectIncomingTicket(
+              this.dataset.ticketId,
+              this.dataset.ticketNumber,
+              this.dataset.subject,
+            );
           });
         });
 
@@ -350,12 +354,12 @@ document.addEventListener("DOMContentLoaded", function () {
       const payload = {
         assigned_to: techId,
       };
-      
+
       // Include notes if provided
       if (notes) {
         payload.notes = notes;
       }
-      
+
       console.debug("Assign POST to", assignUrl, "payload", payload);
       const res = await fetchWithAuth(assignUrl, {
         method: "POST",
@@ -442,7 +446,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const current = meta.current_page || currentPage;
     const last = meta.last_page || 1;
     const total = meta.total || count;
-    const from = meta.from || ((current - 1) * PER_PAGE + 1);
+    const from = meta.from || (current - 1) * PER_PAGE + 1;
     const to = meta.to || Math.min(current * PER_PAGE, total);
 
     // Info text
@@ -544,19 +548,19 @@ document.addEventListener("DOMContentLoaded", function () {
   // --- REJECT INCOMING TICKET ---
   async function rejectIncomingTicket(ticketId, ticketNumber, subject) {
     const { value: reason } = await Swal.fire({
-      title: 'Reject Tiket?',
+      title: "Reject Tiket?",
       html: `<p style="font-size:14px; color:#555; margin-bottom:15px;">Tiket <strong>${escapeHtml(ticketNumber)}</strong> akan langsung ditutup (closed).</p>
              <p style="font-size:13px; color:#888; margin-bottom:10px;">${escapeHtml(subject)}</p>`,
-      input: 'textarea',
-      inputPlaceholder: 'Tulis alasan reject...',
-      inputAttributes: { required: 'true' },
+      input: "textarea",
+      inputPlaceholder: "Tulis alasan reject...",
+      inputAttributes: { required: "true" },
       showCancelButton: true,
       confirmButtonText: '<i class="fa-solid fa-xmark"></i> Reject & Close',
-      cancelButtonText: 'Batal',
-      confirmButtonColor: '#d62828',
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#d62828",
       inputValidator: (value) => {
-        if (!value || !value.trim()) return 'Alasan reject wajib diisi.';
-      }
+        if (!value || !value.trim()) return "Alasan reject wajib diisi.";
+      },
     });
 
     if (!reason) return;
@@ -570,24 +574,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (res && res.ok) {
         Swal.fire({
-          icon: 'success',
-          title: 'Tiket Ditolak',
-          text: 'Tiket berhasil di-reject dan ditutup.',
+          icon: "success",
+          title: "Tiket Ditolak",
+          text: "Tiket berhasil di-reject dan ditutup.",
           timer: 1500,
           showConfirmButton: false,
         });
         loadTickets(currentPage);
       } else {
-        let errMsg = 'Gagal reject tiket.';
+        let errMsg = "Gagal reject tiket.";
         try {
           const errData = await res.json();
           errMsg = errData.message || errMsg;
         } catch (_) {}
-        Swal.fire('Gagal', errMsg, 'error');
+        Swal.fire("Gagal", errMsg, "error");
       }
     } catch (e) {
       console.error("Reject error:", e);
-      Swal.fire('Error', e.message || 'Terjadi kesalahan sistem.', 'error');
+      Swal.fire("Error", e.message || "Terjadi kesalahan sistem.", "error");
     }
   }
 });

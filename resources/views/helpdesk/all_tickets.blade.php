@@ -73,7 +73,8 @@
                 </div>
 
                 <div class="detail-group">
-                    <label class="detail-label text-uppercase text-secondary" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                    <label class="detail-label text-uppercase text-secondary"
+                        style="font-size: 0.75rem; letter-spacing: 0.5px;">
                         Riwayat Perjalanan
                     </label>
                     <div class="timeline" id="mTimeline"></div>
@@ -87,13 +88,13 @@
     {{-- JS Helper untuk Sidebar --}}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/helpdesk-all-tickets.js') }}?v={{ time() }}"></script>
-    
+
     <script>
         // Modal Logic Sederhana (Jika belum ada di file js eksternal)
         function closeModal() {
             document.getElementById('detailModal').style.display = 'none';
         }
-        
+
         // Tutup modal jika klik di luar area
         window.onclick = function(event) {
             const modal = document.getElementById('detailModal');
