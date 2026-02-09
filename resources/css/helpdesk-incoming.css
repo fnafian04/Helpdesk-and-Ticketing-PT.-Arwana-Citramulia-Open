@@ -143,7 +143,126 @@
 .btn-cancel { background: white; color: #666; border: 1px solid #ddd; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
 .btn-cancel:hover { background: #f5f5f5; }
 .footer-actions { margin-top: 20px; display: flex; justify-content: flex-end; }
-.pagination-container { display: flex; gap: 5px; }
+
+/* --- PAGINATION (ARWANA THEME) --- */
+.pagination-container {
+    padding: 20px;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.pagination-info {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.pagination-info strong {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.pagination-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pagination-btn {
+    background: white;
+    border: 1px solid #e2e8f0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    transition: 0.2s;
+    min-width: 40px;
+    text-align: center;
+}
+
+.pagination-btn:hover:not(:disabled):not(.active) {
+    border-color: #d62828;
+    color: #d62828;
+    background: #fff5f5;
+}
+
+.pagination-btn.active {
+    background: #d62828;
+    color: white;
+    border-color: #d62828;
+    box-shadow: 0 4px 6px rgba(214, 40, 40, 0.15);
+}
+
+.pagination-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    background: #f8fafc;
+}
+
+.pagination-btn i {
+    margin-right: 4px;
+}
+
+/* --- EMPTY STATE --- */
+.empty-state-cell {
+    text-align: center;
+    padding: 60px 20px !important;
+}
+
+.empty-state-icon {
+    font-size: 48px;
+    color: #e0e0e0;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.empty-state-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: #555;
+    margin: 0 0 5px 0;
+}
+
+.empty-state-sub {
+    font-size: 13px;
+    color: #999;
+    margin: 0;
+}
+
+/* --- REJECT BUTTON --- */
+.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-reject-ticket {
+    background: white;
+    color: #d62828;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid #ffcdd2;
+    cursor: pointer;
+    transition: 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-reject-ticket:hover {
+    background: #d62828;
+    color: white;
+    border-color: #d62828;
+}
 
 /* =========================================================
    4. MOBILE RESPONSIVE (TAMPILAN DI HP)
@@ -203,4 +322,39 @@
 
     .table-card { padding: 15px; }
     .form-group { padding: 10px 20px; }
+
+    .pagination-container {
+        padding: 12px 15px;
+        gap: 12px;
+        flex-direction: column;
+    }
+
+    .pagination-info {
+        font-size: 12px;
+        width: 100%;
+    }
+
+    .pagination-buttons {
+        width: 100%;
+        gap: 4px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px;
+    }
+
+    .pagination-btn {
+        min-width: 36px;
+        padding: 6px 8px;
+        font-size: 11px;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .btn-reject-ticket {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
 }

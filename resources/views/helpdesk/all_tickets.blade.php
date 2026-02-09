@@ -4,51 +4,19 @@
 @section('css')
     {{-- CSS Eksternal --}}
     @vite(['resources/css/helpdesk-all-tickets.css'])
-    
-    <style>
-        /* TWEAK TAMBAHAN KHUSUS HALAMAN INI */
-        
-        /* Agar baris tabel tidak terlalu rapat di HP */
-        @media (max-width: 768px) {
-            .table-container {
-                padding: 15px; /* Kurangi padding container */
-            }
-            .custom-table th, .custom-table td {
-                padding: 12px 10px; /* Perkecil padding sel */
-            }
-        }
-
-        /* Timeline Style (Bawaan) */
-        .timeline { position: relative; padding-left: 30px; margin-top: 15px; }
-        .timeline-item { position: relative; margin-bottom: 20px; }
-        .timeline-dot {
-            position: absolute; left: 0; top: 3px;
-            width: 12px; height: 12px;
-            background-color: #d62828; /* Merah Arwana */
-            border-radius: 50%;
-            border: 2px solid white;
-            box-shadow: 0 0 0 2px #ddd;
-        }
-        .detail-label { font-weight: 600; color: #555; display: block; margin-bottom: 5px; font-size: 0.85rem; }
-    </style>
 @endsection
 
 @section('content')
-    <div class="page-header d-print-none mb-4">
-        {{-- Gunakan Grid System agar Responsif --}}
-        <div class="row g-2 align-items-center">
-            {{-- Judul --}}
-            <div class="col-12 col-md">
-                <h2 class="page-title">Semua Data Tiket</h2>
-                <div class="text-muted mt-1">Pantau seluruh tiket yang masuk ke sistem.</div>
-            </div>
+    <div class="page-header">
+        <div class="header-left">
+            <h2 class="page-title">Semua Data Tiket</h2>
+            <p class="page-subtitle">Pantau seluruh tiket yang masuk ke sistem.</p>
+        </div>
 
-            {{-- Search Bar --}}
-            <div class="col-12 col-md-auto ms-auto">
-                <div class="search-wrapper">
-                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                    <input type="text" id="searchInput" class="search-input" placeholder="Cari tiket, subjek, atau user...">
-                </div>
+        <div class="header-right">
+            <div class="search-wrapper">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="searchInput" class="search-input" placeholder="Cari tiket, subjek, atau user...">
             </div>
         </div>
     </div>
@@ -85,9 +53,9 @@
         </div>
 
         {{-- Pagination --}}
-        <div class="pagination-wrapper">
-            <div id="paginationInfo" class="text-muted small"></div>
-            <div class="pagination-controls" id="paginationControls"></div>
+        <div class="pagination-container" id="allTicketsPagination" style="display: none;">
+            <div id="paginationInfo" class="pagination-info"></div>
+            <div class="pagination-buttons" id="paginationControls"></div>
         </div>
     </div>
 
