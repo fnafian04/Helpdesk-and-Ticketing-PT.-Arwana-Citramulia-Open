@@ -70,7 +70,7 @@
                     <input type="email" id="profile_email" class="form-input" disabled>
                 </div>
 
-                <h4 class="form-section-title" style="margin-top: 30px;">
+                <h4 class="form-section-title" style="margin-top: 15px;">
                     <i class="fa-solid fa-shield-halved" style="margin-right:10px; color:#d62828;"></i>
                     Keamanan
                 </h4>
@@ -135,7 +135,7 @@
                 let baseUrl = (typeof API_URL !== 'undefined') ? API_URL : '';
                 baseUrl = baseUrl.replace(/\/$/, "");
 
-                const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+                const token = sessionStorage.getItem('auth_token');
                 if (!token) return;
 
                 const meRes = await fetch(`${baseUrl}/api/me`, {

@@ -350,7 +350,7 @@
         // Cek helper di layout
         if (typeof getAuthHeaders === 'undefined') {
             window.getAuthHeaders = () => {
-                const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+                const token = sessionStorage.getItem('auth_token');
                 return {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json',

@@ -79,7 +79,7 @@
                     <a href="{{ route('tickets.index') }}" 
                        onclick="try{sessionStorage.removeItem('last_created_ticket')}catch(e){}"
                        class="btn-submit" 
-                       style="background:#1f2937; width:100%; text-decoration:none;">
+                       style="background:#2563eb; width:100%; text-decoration:none;">
                        <i class="fa-solid fa-list-check"></i> Lihat Riwayat
                     </a>
                 </div>
@@ -90,12 +90,4 @@
 
 @section('scripts')
     <script src="{{ asset('js/ticket-create.js') }}?v={{ time() }}"></script>
-    <script>
-        // Opsional: Script inline untuk modal close logic jika belum ada di js eksternal
-        function closeCreateModal() {
-            document.getElementById('createSuccessModal').style.display = 'none';
-        }
-        
-        // Modal logic (show) biasanya dipanggil dari ticket-create.js setelah fetch sukses
-    </script>
 @endsection

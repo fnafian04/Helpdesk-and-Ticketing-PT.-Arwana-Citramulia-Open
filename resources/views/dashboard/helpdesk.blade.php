@@ -30,7 +30,7 @@
     // Fetch dashboard data from API
     async function loadDashboard() {
         try {
-            const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+            const token = sessionStorage.getItem('auth_token');
             
             // Tampilkan loading dulu
             document.getElementById('dashboardContent').innerHTML = `
