@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title') - Helpdesk Arwana</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/arwanamerah.jpg') }}">
 
     @vite(['resources/css/auth-style.css'])
 
@@ -14,9 +15,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        
-    // API base URL dari config atau fallback ke browser origin
-    const API_URL = ("{{ config('app.url') }}".trim() || window.location.origin).replace(/\/$/, '');
+        // API base URL dari config atau fallback ke browser origin
+        const API_URL = ("{{ config('app.url') }}".trim() || window.location.origin).replace(/\/$/, '');
     </script>
 </head>
 

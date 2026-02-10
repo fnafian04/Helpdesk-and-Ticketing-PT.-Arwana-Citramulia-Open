@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Selamat Datang - Arwana Helpdesk</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/arwanamerah.jpg') }}">
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
@@ -32,15 +33,15 @@
             /* Abstract Background Pattern */
             background:
                 /* Floating circles */
-                radial-gradient(circle at 10% 20%, rgba(214, 40, 40, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 90% 80%, rgba(214, 40, 40, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 50% 50%, rgba(255, 107, 107, 0.05) 0%, transparent 60%),
-                radial-gradient(circle at 30% 70%, rgba(214, 40, 40, 0.06) 0%, transparent 35%),
+                radial-gradient(circle at 10% 20%, rgba(214, 40, 40, 0.18) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(214, 40, 40, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(255, 107, 107, 0.1) 0%, transparent 60%),
+                radial-gradient(circle at 30% 70%, rgba(214, 40, 40, 0.12) 0%, transparent 35%),
                 /* Geometric dots pattern */
-                radial-gradient(circle, rgba(214, 40, 40, 0.12) 1px, transparent 1px),
+                radial-gradient(circle, rgba(214, 40, 40, 0.25) 1.5px, transparent 1.5px),
                 /* Base gradient */
                 linear-gradient(135deg, #f8f9fc 0%, #eef1f5 50%, #f4f6f9 100%);
-            background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 30px 30px, 100% 100%;
+            background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 25px 25px, 100% 100%;
             background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0;
         }
 
@@ -52,7 +53,7 @@
             right: -150px;
             width: 450px;
             height: 450px;
-            background: linear-gradient(135deg, rgba(214, 40, 40, 0.12) 0%, rgba(255, 107, 107, 0.05) 100%);
+            background: linear-gradient(135deg, rgba(214, 40, 40, 0.2) 0%, rgba(255, 107, 107, 0.1) 100%);
             border-radius: 50%;
             z-index: 0;
             animation: floatShape 15s ease-in-out infinite;
@@ -65,7 +66,7 @@
             left: -120px;
             width: 350px;
             height: 350px;
-            background: linear-gradient(45deg, rgba(214, 40, 40, 0.1) 0%, rgba(255, 200, 200, 0.05) 100%);
+            background: linear-gradient(45deg, rgba(214, 40, 40, 0.18) 0%, rgba(255, 200, 200, 0.1) 100%);
             border-radius: 50%;
             z-index: 0;
             animation: floatShape 12s ease-in-out infinite reverse;
