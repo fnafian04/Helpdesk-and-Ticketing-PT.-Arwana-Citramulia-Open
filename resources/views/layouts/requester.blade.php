@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Helpdesk Arwana')</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/arwanamerah.jpg') }}">
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -44,15 +45,16 @@
                 <i class="fa-solid fa-plus-circle"></i> Buat Tiket Baru
             </a>
 
-            <a href="{{ route('tickets.actions') }}" class="menu-item {{ Route::is('tickets.actions') ? 'active' : '' }}">
+            <a href="{{ route('tickets.actions') }}"
+                class="menu-item {{ Route::is('tickets.actions') ? 'active' : '' }}">
                 <i class="fa-solid fa-check-double"></i> Tiket Selesai
             </a>
-            
+
             <a href="{{ route('tickets.index') }}"
-                class="menu-item {{ (Request::is('tickets*') && !Request::is('tickets/create') && !Request::is('tickets/actions')) ? 'active' : '' }}">
+                class="menu-item {{ Request::is('tickets*') && !Request::is('tickets/create') && !Request::is('tickets/actions') ? 'active' : '' }}">
                 <i class="fa-solid fa-list-check"></i> Riwayat Tiket
             </a>
-            
+
             <a href="{{ route('profile') }}" class="menu-item {{ Route::is('profile') ? 'active' : '' }}">
                 <i class="fa-solid fa-user"></i> Profil Saya
             </a>
