@@ -38,6 +38,65 @@
 
   // Edit state
   let editingUserId = null;
+  let editingUserSnapshot = null;
+
+  function setFieldChanged(el, changed) {
+    if (!el) return;
+    if (changed) {
+      el.classList.add("field-changed");
+    } else {
+      el.classList.remove("field-changed");
+    }
+  }
+
+  function clearFormHighlights() {
+    ["uName", "uEmail", "uPhone", "uPassword", "uRole", "uDept"].forEach(
+      (id) => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove("field-changed");
+      },
+    );
+  }
+
+  function updateEditHighlights() {
+    if (!editingUserId || !editingUserSnapshot) {
+      clearFormHighlights();
+      return;
+    }
+
+    const uName = document.getElementById("uName");
+    const uEmail = document.getElementById("uEmail");
+    const uPhone = document.getElementById("uPhone");
+    const uPassword = document.getElementById("uPassword");
+    const uRole = document.getElementById("uRole");
+    const uDept = document.getElementById("uDept");
+
+    setFieldChanged(
+      uName,
+      editingUserSnapshot.name !== String((uName && uName.value) || ""),
+    );
+    setFieldChanged(
+      uEmail,
+      editingUserSnapshot.email !== String((uEmail && uEmail.value) || ""),
+    );
+    setFieldChanged(
+      uPhone,
+      editingUserSnapshot.phone !== String((uPhone && uPhone.value) || ""),
+    );
+    setFieldChanged(
+      uRole,
+      editingUserSnapshot.role !== String((uRole && uRole.value) || ""),
+    );
+    setFieldChanged(
+      uDept,
+      editingUserSnapshot.departmentId !==
+        String((uDept && uDept.value) || ""),
+    );
+    setFieldChanged(
+      uPassword,
+      !!(uPassword && uPassword.value && uPassword.value.trim()),
+    );
+  }
 
   // Change per page handler (no longer used, kept for compatibility)
   window.changePerPage = function () {
@@ -273,9 +332,16 @@
       const roleClass = getRoleClass(primaryRole);
       const roleName = formatRoleName(primaryRole);
       const departmentName = user.department ? user.department.name : "-";
+      const isActive = !!user.is_active;
+      const statusClass = isActive ? "status-active" : "status-inactive";
+      const statusText = isActive ? "Aktif" : "Nonaktif";
+      const toggleBtnClass = isActive ? "btn-toggle-off" : "btn-toggle-on";
+      const toggleIcon = isActive ? "fa-power-off" : "fa-rotate-left";
+      const currentStatus = isActive ? "active" : "inactive";
 
       const row = document.createElement("tr");
       row.id = `user-${user.id}`;
+      if (!isActive) row.classList.add("row-inactive");
       row.innerHTML = `
                 <td>
                     <div style="font-weight: 600;">${user.name}</div>
@@ -283,15 +349,15 @@
                 </td>
                 <td><span class="badge ${roleClass}">${roleName}</span></td>
                 <td>${departmentName}</td>
-                <td><span class="badge status-active" id="badge-${user.id}">Aktif</span></td>
+          <td><span class="badge ${statusClass}" id="badge-${user.id}">${statusText}</span></td>
                 <td style="text-align: right;">
                     <button type="button" class="btn-icon btn-edit" 
                         onclick="editUser(${user.id}, '${user.name}', '${user.email}', '${user.phone}', '${primaryRole}', ${user.department_id || "null"})">
                         <i class="fa-solid fa-pen"></i>
                     </button>
-                    <button type="button" class="btn-icon btn-toggle-off" id="btn-status-${user.id}"
-                        onclick="toggleStatus(${user.id}, '${user.name}', 'active')">
-                        <i class="fa-solid fa-power-off"></i>
+            <button type="button" class="btn-icon ${toggleBtnClass}" id="btn-status-${user.id}"
+              onclick="toggleStatus(${user.id}, '${user.name}', '${currentStatus}')">
+              <i class="fa-solid ${toggleIcon}"></i>
                     </button>
                 </td>
             `;
@@ -324,6 +390,7 @@
   // Exposed functions for markup
   window.openModal = function () {
     editingUserId = null; // Reset edit mode
+    editingUserSnapshot = null;
     const modalTitle = document.getElementById("modalTitle");
     if (modalTitle) modalTitle.innerText = "Tambah User Baru";
 
@@ -343,12 +410,21 @@
     const passHint = document.getElementById("passHint");
     if (passHint) passHint.style.display = "none";
 
+    clearFormHighlights();
+
     const modal = document.getElementById("userModal");
     if (modal) modal.style.display = "flex";
   };
 
   window.editUser = function (userId, name, email, phone, role, deptId) {
     editingUserId = userId; // Store user ID for edit mode
+    editingUserSnapshot = {
+      name: String(name || ""),
+      email: String(email || ""),
+      phone: String(phone || ""),
+      role: String(role || ""),
+      departmentId: deptId === null || typeof deptId === "undefined" ? "" : String(deptId),
+    };
     const modalTitle = document.getElementById("modalTitle");
     if (modalTitle) modalTitle.innerText = "Edit User";
 
@@ -374,6 +450,8 @@
     }
     const passHint = document.getElementById("passHint");
     if (passHint) passHint.style.display = "block";
+
+    updateEditHighlights();
 
     const modal = document.getElementById("userModal");
     if (modal) modal.style.display = "flex";
@@ -427,53 +505,91 @@
       cancelButtonText: '<span style="color:#555">Batal</span>',
       reverseButtons: true,
     }).then((result) => {
-      if (result.isConfirmed) {
-        const row = document.getElementById("user-" + id);
-        const badge = document.getElementById("badge-" + id);
-        const btn = document.getElementById("btn-status-" + id);
+      if (!result.isConfirmed) return;
 
-        if (isDeactivating) {
-          if (row) row.classList.add("row-inactive");
-          if (badge) {
-            badge.className = "badge status-inactive";
-            badge.innerText = "Nonaktif";
-          }
-          if (btn) {
-            btn.className = "btn-icon btn-toggle-on";
-            btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i>';
-            btn.setAttribute(
-              "onclick",
-              `toggleStatus(${id}, '${name}', 'inactive')`,
-            );
-          }
+      (async function () {
+        try {
           Swal.fire({
-            icon: "success",
-            title: "User Nonaktif",
-            timer: 1500,
-            showConfirmButton: false,
+            title: isDeactivating ? "Menonaktifkan..." : "Mengaktifkan...",
+            text: "Sedang memperbarui status user",
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            },
           });
-        } else {
-          if (row) row.classList.remove("row-inactive");
-          if (badge) {
-            badge.className = "badge status-active";
-            badge.innerText = "Aktif";
-          }
-          if (btn) {
-            btn.className = "btn-icon btn-toggle-off";
-            btn.innerHTML = '<i class="fa-solid fa-power-off"></i>';
-            btn.setAttribute(
-              "onclick",
-              `toggleStatus(${id}, '${name}', 'active')`,
+
+          const response = await fetch(`${API_URL}/api/users/${id}/status`, {
+            method: "PATCH",
+            headers: {
+              Authorization: `Bearer ${getAuthToken()}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ is_active: !isDeactivating }),
+          });
+
+          if (handleApiError(response, "Update User Status")) return;
+
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(
+              result.message || `HTTP error! status: ${response.status}`,
             );
           }
+
+          const row = document.getElementById("user-" + id);
+          const badge = document.getElementById("badge-" + id);
+          const btn = document.getElementById("btn-status-" + id);
+
+          if (isDeactivating) {
+            if (row) row.classList.add("row-inactive");
+            if (badge) {
+              badge.className = "badge status-inactive";
+              badge.innerText = "Nonaktif";
+            }
+            if (btn) {
+              btn.className = "btn-icon btn-toggle-on";
+              btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i>';
+              btn.setAttribute(
+                "onclick",
+                `toggleStatus(${id}, '${name}', 'inactive')`,
+              );
+            }
+            Swal.fire({
+              icon: "success",
+              title: "User Nonaktif",
+              timer: 1500,
+              showConfirmButton: false,
+            });
+          } else {
+            if (row) row.classList.remove("row-inactive");
+            if (badge) {
+              badge.className = "badge status-active";
+              badge.innerText = "Aktif";
+            }
+            if (btn) {
+              btn.className = "btn-icon btn-toggle-off";
+              btn.innerHTML = '<i class="fa-solid fa-power-off"></i>';
+              btn.setAttribute(
+                "onclick",
+                `toggleStatus(${id}, '${name}', 'active')`,
+              );
+            }
+            Swal.fire({
+              icon: "success",
+              title: "User Aktif",
+              timer: 1500,
+              showConfirmButton: false,
+            });
+          }
+        } catch (error) {
           Swal.fire({
-            icon: "success",
-            title: "User Aktif",
-            timer: 1500,
-            showConfirmButton: false,
+            icon: "error",
+            title: "Gagal Update Status",
+            text: error.message || "Terjadi kesalahan saat update status",
+            confirmButtonColor: "#d62828",
           });
         }
-      }
+      })();
     });
   };
 
@@ -511,6 +627,29 @@
         confirmButtonColor: "#d62828",
       });
       return;
+    }
+
+    if (isEditMode) {
+      const normalizedDeptId = departmentId ? String(departmentId) : "";
+      const hasPasswordChange = !!(password && password.trim());
+      const hasFieldChange =
+        !editingUserSnapshot ||
+        editingUserSnapshot.name !== String(name || "") ||
+        editingUserSnapshot.email !== String(email || "") ||
+        editingUserSnapshot.phone !== String(phone || "") ||
+        editingUserSnapshot.role !== String(role || "") ||
+        editingUserSnapshot.departmentId !== normalizedDeptId;
+
+      if (!hasFieldChange && !hasPasswordChange) {
+        window.closeModal();
+        Swal.fire({
+          icon: "info",
+          title: "Tidak ada perubahan",
+          text: "Data user tidak berubah!",
+          confirmButtonColor: "#1565c0",
+        });
+        return;
+      }
     }
 
     window.closeModal();
@@ -694,6 +833,18 @@
     if (form) form.addEventListener("submit", handleSaveForm);
     loadUsers(currentPage, currentPerPage);
     loadDepartments();
+
+    ["uName", "uEmail", "uPhone", "uPassword"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener("input", () => updateEditHighlights());
+    });
+
+    ["uRole", "uDept"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener("change", () => updateEditHighlights());
+    });
 
     // Search input with debounce
     const searchInput = document.getElementById("searchInput");

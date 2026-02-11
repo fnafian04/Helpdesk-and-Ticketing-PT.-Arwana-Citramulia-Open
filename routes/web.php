@@ -23,6 +23,18 @@ Route::get('/register', function () {
     return view('auth.register');
 })->name('register');
 
+Route::get('/email/verified', function () {
+    return view('auth.email_verified');
+})->name('verification.landing');
+
+Route::get('/email/verify-result', function () {
+    return view('emails.verify-result');
+})->name('verification.result');
+
+Route::get('/email/verify-reminder', function () {
+    return view('emails.verify-reminder');
+})->name('verification.reminder');
+
 // Logout Route
 Route::post('/logout', function () {
     // Client-side akan handle clear sessionStorage

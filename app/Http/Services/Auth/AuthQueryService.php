@@ -46,11 +46,13 @@ class AuthQueryService
                 'department_id' => $user->department_id,
                 'department_name' => $user->department?->name ?? null,
                 'is_active' => $user->is_active,
+                'email_verified_at' => $user->email_verified_at,
                 'created_at' => $user->created_at,
                 'updated_at' => $user->updated_at,
             ],
             'roles' => $user->getRoleNames(),
             'permissions' => $user->getAllPermissions()->pluck('name'),
+            'email_verification_required' => (bool) config('emailverification.enabled'),
         ];
     }
 

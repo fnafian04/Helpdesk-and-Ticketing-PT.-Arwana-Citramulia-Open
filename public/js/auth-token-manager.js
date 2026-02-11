@@ -7,6 +7,7 @@ window.TokenManager = window.TokenManager || {
     STORAGE_TOKEN: 'auth_token',
     STORAGE_USER: 'auth_user',
     STORAGE_ROLES: 'auth_roles',
+    STORAGE_EMAIL_VERIFICATION: 'email_verification_required',
 
     /**
      * Set authentication data (token, user, roles)
@@ -195,6 +196,11 @@ window.TokenManager = window.TokenManager || {
                 this.clearAuth();
             }
 
+            // Store email verification required flag
+            if (data.email_verification_required !== undefined) {
+                sessionStorage.setItem(this.STORAGE_EMAIL_VERIFICATION, JSON.stringify(data.email_verification_required));
+            }
+
             return rolesMatch && userMatch;
         } catch (error) {
             console.error('Error validating roles:', error);
@@ -209,6 +215,7 @@ window.TokenManager = window.TokenManager || {
         sessionStorage.removeItem(this.STORAGE_TOKEN);
         sessionStorage.removeItem(this.STORAGE_USER);
         sessionStorage.removeItem(this.STORAGE_ROLES);
+        sessionStorage.removeItem(this.STORAGE_EMAIL_VERIFICATION);
     },
 
     /**

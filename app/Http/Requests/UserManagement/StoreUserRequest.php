@@ -39,7 +39,7 @@ class StoreUserRequest extends FormRequest
             'password' => 'required|min:8',
             'department_id' => 'nullable|exists:departments,id',
             'roles' => 'required|array|min:1',
-            'roles.*' => 'required|string|in:helpdesk,technician',
+            'roles.*' => 'required|string|in:helpdesk,technician,requester',
             'is_active' => 'sometimes|boolean',
         ];
     }
@@ -57,7 +57,7 @@ class StoreUserRequest extends FormRequest
             'password.required' => 'Password wajib diisi',
             'password.min' => 'Password minimal 8 karakter',
             'roles.required' => 'Role wajib dipilih minimal satu',
-            'roles.*.in' => 'Role harus salah satu dari: helpdesk, technician',
+            'roles.*.in' => 'Role harus salah satu dari: helpdesk, technician, requester',
             'department_id.exists' => 'Department yang dipilih tidak valid',
         ];
     }

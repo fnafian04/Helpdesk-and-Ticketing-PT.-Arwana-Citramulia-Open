@@ -4,13 +4,13 @@
  */
 
 document.addEventListener("DOMContentLoaded", async function () {
-  // Skip protection for login/register pages
+  // Skip protection for login/register pages and email verification pages
   const currentPath = window.location.pathname;
-  const guestPages = ["/login", "/register", "/forgot-password"];
+  const guestPages = ["/login", "/register", "/forgot-password", "/email/verify-result", "/email/verify-reminder"];
 
   // Check if current page is a guest page (should not be protected)
   if (guestPages.some((page) => currentPath.includes(page))) {
-    console.log("Guest page detected, skipping protection");
+    console.log("Guest/verification page detected, skipping protection");
     return;
   }
 
@@ -26,6 +26,15 @@ document.addEventListener("DOMContentLoaded", async function () {
   if (!rolesValid) {
     console.log("User roles invalid, redirecting to login...");
     window.location.href = "/login";
+    return;
+  }
+
+  // Check email verification status (skip if verification is disabled)
+  const emailVerificationRequired = JSON.parse(sessionStorage.getItem('email_verification_required') ?? 'true');
+  const user = TokenManager.getUser();
+  if (emailVerificationRequired && user && !user.email_verified_at) {
+    console.log("Email not verified, redirecting to verification reminder...");
+    window.location.href = "/email/verify-reminder";
     return;
   }
 
@@ -55,6 +64,15 @@ async function runAuthCheck() {
     if (!authenticated || !rolesValid) {
       console.log("Auth check failed, redirecting to login...");
       TokenManager.logout();
+      return;
+    }
+
+    // Check email verification during revalidation (skip if verification is disabled)
+    const emailVerificationRequired = JSON.parse(sessionStorage.getItem('email_verification_required') ?? 'true');
+    const user = TokenManager.getUser();
+    if (emailVerificationRequired && user && !user.email_verified_at) {
+      console.log("Email not verified, redirecting to verification reminder...");
+      window.location.href = "/email/verify-reminder";
       return;
     }
   } finally {

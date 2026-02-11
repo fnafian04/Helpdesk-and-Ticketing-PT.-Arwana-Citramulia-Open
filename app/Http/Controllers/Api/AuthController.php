@@ -36,6 +36,11 @@ class AuthController extends Controller
 
         $user = $this->crudService->registerUser($validated);
 
+        // Kirim email verifikasi hanya jika fitur enabled
+        if (config('emailverification.enabled')) {
+            $user->sendEmailVerificationNotification();
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

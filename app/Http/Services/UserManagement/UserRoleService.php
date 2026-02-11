@@ -9,7 +9,7 @@ class UserRoleService
      */
     public function getAvailableRoles(): array
     {
-        return ['helpdesk', 'technician'];
+        return ['requester','helpdesk', 'technician'];
     }
 
     /**
@@ -17,7 +17,7 @@ class UserRoleService
      */
     public function getValidRoles(): array
     {
-        return ['helpdesk', 'technician', 'requester', 'manager'];
+        return ['helpdesk', 'technician', 'requester'];
     }
 
     /**
@@ -25,6 +25,6 @@ class UserRoleService
      */
     public function getSummaryRoles(): array
     {
-        return ['helpdesk', 'technician', 'requester', 'manager', 'master-admin'];
+        return ['helpdesk', 'technician', 'requester', 'master-admin'];
     }
 }

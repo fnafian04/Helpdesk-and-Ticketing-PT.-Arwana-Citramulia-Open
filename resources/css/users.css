@@ -376,6 +376,12 @@
     box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.1);
 }
 
+.field-changed {
+    border-color: #f57c00;
+    background: #fff7e6;
+    box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.12);
+}
+
 /* Password Toggle */
 .password-wrapper {
     position: relative;

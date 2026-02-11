@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\TicketController;
 use App\Http\Controllers\Api\UserManagementController;
 use App\Http\Controllers\Api\DepartmentController;
@@ -26,19 +27,31 @@ use App\Http\Controllers\Api\ExportController;
 // ============================================================================
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+    ->name('verification.verify');
 
+// Endpoint yang hanya perlu auth (tanpa verifikasi email)
+// Agar user yang belum verifikasi tetap bisa validate token, lihat profil, dan logout
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'send'])
+        ->middleware('throttle:6,1');
+    Route::get('/email/verification-status', [EmailVerificationController::class, 'status']);
+
     Route::get('/user', fn(Request $request) => $request->user());
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/validate-token', [AuthController::class, 'validateToken']);
-    Route::post('/change-password', [AuthController::class, 'changePassword']);
     Route::post('/logout', [AuthController::class, 'logout']);
+});
+
+// Endpoint yang memerlukan email terverifikasi
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    Route::post('/change-password', [AuthController::class, 'changePassword']);
 });
 
 // ============================================================================
 // DASHBOARD ROUTES
 // ============================================================================
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->middleware('role:master-admin|helpdesk|technician|requester');
 });
@@ -46,7 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
 // ============================================================================
 // TICKET MANAGEMENT ROUTES
 // ============================================================================
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Ticket Count (for badge and analytics)
     Route::get('/tickets/count', [TicketController::class, 'count'])
         ->middleware('permission:ticket.view');
@@ -100,7 +113,7 @@ Route::middleware('auth:sanctum')->group(function () {
 // USER MANAGEMENT ROUTES
 // ============================================================================
 // GET Endpoints (Master Admin + Helpdesk)
-Route::middleware('auth:sanctum', 'permission:user.view')->group(function () {
+Route::middleware(['auth:sanctum', 'verified', 'permission:user.view'])->group(function () {
     Route::get('/users/by-role/{roleName}', [UserManagementController::class, 'getUsersByRole']);
     Route::get('/users/{user}', [UserManagementController::class, 'show'])
         ->whereNumber('user');
@@ -108,7 +121,7 @@ Route::middleware('auth:sanctum', 'permission:user.view')->group(function () {
 });
 
 // GET Resolved Tickets (Master Admin + Helpdesk + Technician viewing their own)
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/users/{user}/resolved-tickets', [UserManagementController::class, 'resolvedTickets'])
         ->whereNumber('user');
 
@@ -117,7 +130,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // POST/PUT/DELETE Endpoints (Master Admin Only)
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::prefix('users')->group(function () {
         Route::get('/roles-summary', [UserManagementController::class, 'getRolesSummary'])
             ->middleware('permission:user.view-all');
@@ -150,7 +163,7 @@ Route::get('/departments', [DepartmentController::class, 'index']);
 Route::get('/departments/{department}', [DepartmentController::class, 'show']);
 
 // Protected POST/PUT/PATCH/DELETE Endpoints (Master Admin & Helpdesk)
-Route::middleware('auth:sanctum', 'role:master-admin|helpdesk')->group(function () {
+Route::middleware(['auth:sanctum', 'verified', 'role:master-admin|helpdesk'])->group(function () {
     Route::post('/departments', [DepartmentController::class, 'store']);
     Route::put('/departments/{department}', [DepartmentController::class, 'update']);
     Route::patch('/departments/{department}', [DepartmentController::class, 'update']);
@@ -165,7 +178,7 @@ Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{category}', [CategoryController::class, 'show']);
 
 // Protected POST/PUT/PATCH/DELETE Endpoints (Master Admin & Helpdesk)
-Route::middleware('auth:sanctum', 'role:master-admin|helpdesk')->group(function () {
+Route::middleware(['auth:sanctum', 'verified', 'role:master-admin|helpdesk'])->group(function () {
     Route::post('/categories', [CategoryController::class, 'store']);
     Route::put('/categories/{category}', [CategoryController::class, 'update']);
     Route::patch('/categories/{category}', [CategoryController::class, 'update']);
@@ -176,6 +189,6 @@ Route::middleware('auth:sanctum', 'role:master-admin|helpdesk')->group(function 
 // EXPORT ROUTES
 // ============================================================================
 // Export ticket report ke Excel (Master Admin & Helpdesk only)
-Route::middleware('auth:sanctum', 'role:master-admin|helpdesk')->group(function () {
+Route::middleware(['auth:sanctum', 'verified', 'role:master-admin|helpdesk'])->group(function () {
     Route::get('/export', [ExportController::class, 'export']);
 });
