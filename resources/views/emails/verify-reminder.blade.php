@@ -434,7 +434,7 @@
                     </button>
                     <button type="button" class="btn btn-primary" id="btnResend">
                         <i class="fa-solid fa-paper-plane"></i>
-                        Kirim Ulang Email Verifikasi
+                        Kirim Email Verifikasi
                     </button>
                     <button type="button" class="btn btn-secondary" id="btnCheckStatus">
                         <i class="fa-solid fa-circle-check"></i>

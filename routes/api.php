@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AdminPasswordResetController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\EmailVerificationController;
 use App\Http\Controllers\Api\TicketController;
@@ -29,6 +30,18 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
     ->name('verification.verify');
+
+// ============================================================================
+// MASTER ADMIN PASSWORD RESET (Public - tanpa auth)
+// ============================================================================
+Route::prefix('admin')->group(function () {
+    Route::post('/forgot-password', [AdminPasswordResetController::class, 'requestOtp'])
+        ->middleware('throttle:5,1'); // Max 5 request per menit
+    Route::post('/verify-otp', [AdminPasswordResetController::class, 'verifyOtp'])
+        ->middleware('throttle:10,1'); // Max 10 request per menit
+    Route::post('/reset-password', [AdminPasswordResetController::class, 'resetPassword'])
+        ->middleware('throttle:10,1'); // Max 10 request per menit
+});
 
 // Endpoint yang hanya perlu auth (tanpa verifikasi email)
 // Agar user yang belum verifikasi tetap bisa validate token, lihat profil, dan logout

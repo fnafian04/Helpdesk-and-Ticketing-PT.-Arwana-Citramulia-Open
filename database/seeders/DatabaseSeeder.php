@@ -19,9 +19,6 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             InitialMasterAdminSeeder::class,
             
-            // Dummy data seeders (optional - comment jika tidak perlu)
-            // DummyUserSeeder::class,
-            // DummyTicketSeeder::class,
         ]);
     }
 }
