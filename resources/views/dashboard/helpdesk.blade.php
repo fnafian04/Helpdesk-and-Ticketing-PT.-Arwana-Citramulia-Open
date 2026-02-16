@@ -117,7 +117,7 @@
                         html += `
                         <tr>
                             <td>
-                                <i class="fa-solid fa-ticket-alt" style="color:#888;margin-right:4px;"></i>
+                                <i class="fa-solid fa-ticket" style="color:#888;margin-right:4px;"></i>
                                 <span style="font-family:monospace; font-weight:700;">${ticket.ticket_number}</span>
                             </td>
                             <td>

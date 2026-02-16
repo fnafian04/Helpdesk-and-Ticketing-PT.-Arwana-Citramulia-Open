@@ -209,7 +209,7 @@ document.addEventListener("DOMContentLoaded", function () {
         <td>
           <div class="ticket-subject">${subject}</div>
           <div style="font-size:12px; color:#999">
-            <i class="fa-solid fa-ticket-alt" style="margin-right:3px;color:#bbb;"></i>${ticketNum}
+            <i class="fa-solid fa-ticket" style="margin-right:3px;color:#bbb;"></i>${ticketNum}
             &nbsp;•&nbsp;
             <i class="fa-solid fa-user" style="margin-right:3px;color:#bbb;"></i>${requester}
           </div>
