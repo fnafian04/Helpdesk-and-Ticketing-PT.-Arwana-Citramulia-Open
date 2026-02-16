@@ -22,6 +22,13 @@
         <button class="mobile-toggle-btn" id="sidebarToggle">
             <i class="fa-solid fa-bars"></i>
         </button>
+
+        <!-- Mobile shortcut: switch role (visible only on small screens) -->
+        <button id="mobileSwitchRoleBtn" class="mobile-switch-role-btn" onclick="openSwitchRoleModal()"
+            aria-label="Ganti Role" style="display:none;">
+            <i class="fa-solid fa-repeat"></i>
+        </button>
+
         <div class="mobile-logo-container">
             <img src="{{ asset('images/logo_arwana.png') }}" alt="Arwana Ceramics" class="mobile-logo-img">
         </div>
