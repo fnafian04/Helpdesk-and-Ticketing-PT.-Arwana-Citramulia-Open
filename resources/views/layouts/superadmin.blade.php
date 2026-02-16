@@ -60,6 +60,7 @@
         </div>
 
         <div class="mt-auto">
+            @include('partials.switch-role')
             <button type="button" class="btn-reset-password" id="btnResetPassword">
                 <i class="fa-solid fa-key"></i> Reset Password Admin
             </button>

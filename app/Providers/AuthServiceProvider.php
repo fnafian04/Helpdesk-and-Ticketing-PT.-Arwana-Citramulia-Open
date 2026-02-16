@@ -23,7 +23,8 @@ class AuthServiceProvider extends ServiceProvider
     public function boot()
     {
         Gate::before(function ($user, $ability) {
-            if ($user->hasRole('master-admin')) {
+            // Super admin gate hanya berlaku jika active role adalah master-admin
+            if (method_exists($user, 'isActiveRole') && $user->isActiveRole('master-admin')) {
                 return true;
             }
         });

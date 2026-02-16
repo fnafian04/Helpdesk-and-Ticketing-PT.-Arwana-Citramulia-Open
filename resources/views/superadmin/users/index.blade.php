@@ -119,15 +119,29 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Role (Hak Akses)</label>
-                        <select class="form-select" id="uRole">
-                            <option value="requester">Requester</option>
-                            <option value="technician">Technician</option>
-                            <option value="helpdesk">Helpdesk</option>
-                        </select>
+                        <label class="form-label">Role (Hak Akses) <small style="color:#888; font-weight:400;">— pilih minimal 1</small></label>
+                        <div class="role-checkbox-group" id="uRoles">
+                            <label class="role-checkbox">
+                                <input type="checkbox" name="roles[]" value="requester">
+                                <span class="role-checkbox-label">
+                                    <i class="fa-solid fa-user"></i> Requester
+                                </span>
+                            </label>
+                            <label class="role-checkbox">
+                                <input type="checkbox" name="roles[]" value="technician">
+                                <span class="role-checkbox-label">
+                                    <i class="fa-solid fa-screwdriver-wrench"></i> Technician
+                                </span>
+                            </label>
+                            <label class="role-checkbox">
+                                <input type="checkbox" name="roles[]" value="helpdesk">
+                                <span class="role-checkbox-label">
+                                    <i class="fa-solid fa-headset"></i> Helpdesk
+                                </span>
+                            </label>
+                        </div>
                     </div>
                 </div>
-
                 <div style="text-align: right; margin-top: 30px;">
                     <button type="button" onclick="closeModal()"
                         style="background:white; border:1px solid #ddd; padding:10px 25px; border-radius:8px; cursor:pointer; margin-right: 10px; font-weight:600; color:#555;">Batal</button>

@@ -6,17 +6,19 @@ window.TokenManager = window.TokenManager || {
     // Storage keys
     STORAGE_TOKEN: 'auth_token',
     STORAGE_USER: 'auth_user',
-    STORAGE_ROLES: 'auth_roles',
+    STORAGE_ACTIVE_ROLE: 'auth_active_role',
+    STORAGE_ALL_ROLES: 'auth_all_roles',
     STORAGE_EMAIL_VERIFICATION: 'email_verification_required',
 
     /**
-     * Set authentication data (token, user, roles)
+     * Set authentication data (token, user, activeRole, allRoles)
      * @param {string} token - Authentication token
      * @param {object} user - User object from API
-     * @param {array} roles - Array of role objects
+     * @param {string} activeRole - Currently active role
+     * @param {array} allRoles - All roles the user has
      * @returns {boolean} - True if saved successfully
      */
-    setAuth(token, user = null, roles = null) {
+    setAuth(token, user = null, activeRole = null, allRoles = null) {
         try {
             if (!token || typeof token !== 'string' || token.trim() === '') {
                 console.error('Invalid token');
@@ -29,8 +31,12 @@ window.TokenManager = window.TokenManager || {
                 sessionStorage.setItem(this.STORAGE_USER, JSON.stringify(user));
             }
             
-            if (roles) {
-                sessionStorage.setItem(this.STORAGE_ROLES, JSON.stringify(roles));
+            if (activeRole) {
+                sessionStorage.setItem(this.STORAGE_ACTIVE_ROLE, activeRole);
+            }
+
+            if (allRoles) {
+                sessionStorage.setItem(this.STORAGE_ALL_ROLES, JSON.stringify(allRoles));
             }
             
             return true;
@@ -67,12 +73,28 @@ window.TokenManager = window.TokenManager || {
     },
 
     /**
-     * Get roles from sessionStorage
+     * Get active role
+     * @returns {string|null}
+     */
+    getActiveRole() {
+        return sessionStorage.getItem(this.STORAGE_ACTIVE_ROLE);
+    },
+
+    /**
+     * Get all roles
      * @returns {array}
      */
-    getRoles() {
-        const roles = sessionStorage.getItem(this.STORAGE_ROLES);
+    getAllRoles() {
+        const roles = sessionStorage.getItem(this.STORAGE_ALL_ROLES);
         return roles ? JSON.parse(roles) : [];
+    },
+
+    /**
+     * Check if user has multiple roles
+     * @returns {boolean}
+     */
+    hasMultipleRoles() {
+        return this.getAllRoles().length > 1;
     },
 
     /**
@@ -100,10 +122,16 @@ window.TokenManager = window.TokenManager || {
                 }
             });
 
-            if (!response.ok) {
-                // Token invalid or expired - clear session
-                console.warn('Token validation failed with status:', response.status);
+            if (response.status === 401 || response.status === 403) {
+                // Token explicitly rejected by server - clear auth
+                console.warn('Token rejected by server, status:', response.status);
                 this.clearAuth();
+                return false;
+            }
+
+            if (!response.ok) {
+                // Server error (5xx, etc.) - don't clear session, just report failure
+                console.warn('Token validation failed with status:', response.status, '(session preserved)');
                 return false;
             }
 
@@ -118,9 +146,9 @@ window.TokenManager = window.TokenManager || {
                 return false;
             }
         } catch (error) {
-            console.error('Token validation error:', error);
-            // Clear session on network error to be safe
-            this.clearAuth();
+            // Network error (server unreachable, timeout, etc.) - DON'T clear session
+            // The token might still be valid, server is just temporarily unavailable
+            console.error('Token validation network error (session preserved):', error.message);
             return false;
         }
     },
@@ -136,12 +164,17 @@ window.TokenManager = window.TokenManager || {
     },
 
     /**
-     * Check if user has specific role
+     * Check if user has specific role (checks active role first, then all roles)
      * @param {string} roleName - Role name to check
      * @returns {boolean}
      */
     hasRole(roleName) {
-        const roles = this.getRoles();
+        const activeRole = this.getActiveRole();
+        if (activeRole) {
+            return activeRole === roleName;
+        }
+        // Fallback to checking all roles
+        const roles = this.getAllRoles();
         return roles.some(role => role.name === roleName || role === roleName);
     },
 
@@ -169,15 +202,23 @@ window.TokenManager = window.TokenManager || {
                 }
             });
 
-            if (!response.ok) {
-                console.warn('Failed to fetch user data from API, status:', response.status);
+            if (response.status === 401 || response.status === 403) {
+                // Token explicitly rejected - clear auth
+                console.warn('User data fetch rejected, status:', response.status);
                 this.clearAuth();
                 return false;
             }
 
+            if (!response.ok) {
+                // Server error - don't clear session, just report failure
+                console.warn('Failed to fetch user data, status:', response.status, '(session preserved)');
+                return false;
+            }
+
             const data = await response.json();
-            const apiRoles = data.roles || [];
+            const apiRoles = data.all_roles || data.roles || [];
             const apiUser = data.user || null;
+            const apiActiveRole = data.active_role || null;
 
             if (!apiUser || apiUser.id == null) {
                 console.warn('Invalid user data from API');
@@ -187,7 +228,10 @@ window.TokenManager = window.TokenManager || {
 
             // API is source of truth — update session with latest data
             sessionStorage.setItem(this.STORAGE_USER, JSON.stringify(apiUser));
-            sessionStorage.setItem(this.STORAGE_ROLES, JSON.stringify(apiRoles));
+            sessionStorage.setItem(this.STORAGE_ALL_ROLES, JSON.stringify(apiRoles));
+            if (apiActiveRole) {
+                sessionStorage.setItem(this.STORAGE_ACTIVE_ROLE, apiActiveRole);
+            }
 
             // Store email verification required flag
             if (data.email_verification_required !== undefined) {
@@ -196,18 +240,21 @@ window.TokenManager = window.TokenManager || {
 
             return true;
         } catch (error) {
-            console.error('Error validating roles:', error);
+            // Network error - DON'T clear session, server might be temporarily unreachable
+            console.error('Role validation network error (session preserved):', error.message);
             return false;
         }
     },
 
     /**
      * Clear all auth data (logout)
+     * Only removes auth-specific keys to avoid wiping unrelated session data
      */
     clearAuth() {
         sessionStorage.removeItem(this.STORAGE_TOKEN);
         sessionStorage.removeItem(this.STORAGE_USER);
-        sessionStorage.removeItem(this.STORAGE_ROLES);
+        sessionStorage.removeItem(this.STORAGE_ACTIVE_ROLE);
+        sessionStorage.removeItem(this.STORAGE_ALL_ROLES);
         sessionStorage.removeItem(this.STORAGE_EMAIL_VERIFICATION);
     },
 
@@ -219,52 +266,103 @@ window.TokenManager = window.TokenManager || {
     },
 
     /**
-     * Redirect to dashboard based on user role
+     * Redirect to dashboard based on active role
      */
     redirectToDashboard() {
-        const roles = this.getRoles();
+        const activeRole = this.getActiveRole();
         
-        if (!roles || roles.length === 0) {
-            window.location.href = '/login';
-            return;
+        if (!activeRole) {
+            // Fallback to old behavior
+            const roles = this.getAllRoles();
+            if (!roles || roles.length === 0) {
+                // Clear stale auth to prevent redirect loops
+                this.clearAuth();
+                window.location.href = '/login';
+                return;
+            }
         }
 
-        // Check role dan redirect
-        if (this.hasRole('master-admin')) {
-            window.location.href = '/dashboard/superadmin';
-        } else if (this.hasRole('helpdesk')) {
-            window.location.href = '/dashboard/helpdesk';
-        } else if (this.hasRole('technician')) {
-            window.location.href = '/dashboard/technician';
-        } else if (this.hasRole('requester')) {
-            window.location.href = '/dashboard/requester';
-        } else {
-            // Default ke login
-            window.location.href = '/login';
+        const role = activeRole || this.getAllRoles()[0];
+
+        switch (role) {
+            case 'master-admin':
+                window.location.href = '/dashboard/superadmin';
+                break;
+            case 'helpdesk':
+                window.location.href = '/dashboard/helpdesk';
+                break;
+            case 'technician':
+                window.location.href = '/dashboard/technician';
+                break;
+            case 'requester':
+                window.location.href = '/dashboard/requester';
+                break;
+            default:
+                // Unknown role — clear auth to prevent redirect loops
+                console.warn('Unknown role:', role, '— clearing auth');
+                this.clearAuth();
+                window.location.href = '/login';
         }
     },
 
     /**
-     * Get dashboard URL based on role
+     * Get dashboard URL based on a specific role
+     * @param {string} role - Role name
+     * @returns {string}
+     */
+    getDashboardUrlForRole(role) {
+        switch (role) {
+            case 'master-admin': return '/dashboard/superadmin';
+            case 'helpdesk': return '/dashboard/helpdesk';
+            case 'technician': return '/dashboard/technician';
+            case 'requester': return '/dashboard/requester';
+            default: return '/login';
+        }
+    },
+
+    /**
+     * Get dashboard URL based on active role
      * @returns {string}
      */
     getDashboardUrl() {
-        const roles = this.getRoles();
-        
-        if (!roles || roles.length === 0) {
-            return '/login';
-        }
+        const activeRole = this.getActiveRole();
+        return this.getDashboardUrlForRole(activeRole);
+    },
 
-        if (this.hasRole('master-admin')) {
-            return '/dashboard/superadmin';
-        } else if (this.hasRole('helpdesk')) {
-            return '/dashboard/helpdesk';
-        } else if (this.hasRole('technician')) {
-            return '/dashboard/technician';
-        } else if (this.hasRole('requester')) {
-            return '/dashboard/requester';
-        } else {
-            return '/login';
+    /**
+     * Switch active role via API
+     * @param {string} newRole - New role to switch to
+     * @returns {Promise<boolean>}
+     */
+    async switchRole(newRole) {
+        const token = this.getToken();
+        if (!token) return false;
+
+        try {
+            const apiUrl = typeof API_URL !== 'undefined' ? API_URL : window.location.origin;
+            const response = await fetch(`${apiUrl}/api/switch-role`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ role: newRole })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.token) {
+                // Update session with new token and role data
+                this.setAuth(data.token, data.user, data.active_role, data.all_roles || []);
+                return true;
+            } else {
+                console.error('Switch role failed:', data.message);
+                return false;
+            }
+        } catch (error) {
+            console.error('Switch role error:', error);
+            return false;
         }
     },
 

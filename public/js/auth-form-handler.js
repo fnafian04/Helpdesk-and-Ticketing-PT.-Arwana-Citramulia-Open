@@ -170,12 +170,20 @@ async function handleLogin(event) {
 
         const data = await response.json();
 
+        // Handle role selection required (status 300)
+        if (data.role_selection_required === true) {
+            setButtonLoading(btn, false);
+            showRoleSelectionModal(data.available_roles, email, password);
+            return;
+        }
+
         if (response.ok && data.token) {
-            // Save token, user data, and roles
+            // Save token, user data, active role, and all roles
             const user = data.data || data.user || null;
-            const roles = data.roles || [];
+            const activeRole = data.active_role || null;
+            const allRoles = data.all_roles || data.roles || [];
             
-            const saved = TokenManager.setAuth(data.token, user, roles);
+            const saved = TokenManager.setAuth(data.token, user, activeRole, allRoles);
 
             if (!saved) {
                 throw new Error('Gagal menyimpan data autentikasi');
@@ -210,6 +218,136 @@ async function handleLogin(event) {
     } finally {
         setButtonLoading(btn, false);
     }
+}
+
+/**
+ * Show role selection modal for multi-role users
+ */
+function showRoleSelectionModal(availableRoles, email, password) {
+    const modal = document.getElementById('roleSelectionModal');
+    const container = document.getElementById('roleOptionsContainer');
+    
+    if (!modal || !container) {
+        console.error('Role selection modal not found');
+        return;
+    }
+
+    // Role display config
+    const roleConfig = {
+        'master-admin': { icon: 'fa-shield-halved', label: 'Master Admin', color: '#d62828', desc: 'Kelola semua sistem, user, dan laporan' },
+        'helpdesk': { icon: 'fa-headset', label: 'Helpdesk', color: '#2196F3', desc: 'Assign tiket, pantau progress, kelola data' },
+        'technician': { icon: 'fa-screwdriver-wrench', label: 'Teknisi', color: '#FF9800', desc: 'Tangani tiket yang di-assign kepada Anda' },
+        'requester': { icon: 'fa-user', label: 'Requester', color: '#4CAF50', desc: 'Buat dan pantau tiket Anda' }
+    };
+
+    container.innerHTML = '';
+
+    availableRoles.forEach(role => {
+        const config = roleConfig[role] || { icon: 'fa-user', label: role, color: '#666', desc: '' };
+        const card = document.createElement('div');
+        card.className = 'role-option-card';
+        card.dataset.role = role;
+        card.innerHTML = `
+            <div class="role-option-icon" style="background: ${config.color}20; color: ${config.color};">
+                <i class="fa-solid ${config.icon}"></i>
+            </div>
+            <div class="role-option-info">
+                <strong>${config.label}</strong>
+                <small>${config.desc}</small>
+            </div>
+            <i class="fa-solid fa-chevron-right role-option-arrow"></i>
+        `;
+        card.addEventListener('click', () => loginWithRole(email, password, role));
+        container.appendChild(card);
+    });
+
+    modal.classList.add('active');
+}
+
+/**
+ * Login with a specific role selected
+ */
+async function loginWithRole(email, password, role) {
+    const modal = document.getElementById('roleSelectionModal');
+    
+    // Show loading on selected card
+    const cards = document.querySelectorAll('.role-option-card');
+    cards.forEach(c => {
+        c.style.pointerEvents = 'none';
+        c.style.opacity = '0.5';
+    });
+    const selectedCard = document.querySelector(`.role-option-card[data-role="${role}"]`);
+    if (selectedCard) {
+        selectedCard.style.opacity = '1';
+        selectedCard.querySelector('.role-option-arrow').className = 'fa-solid fa-spinner fa-spin role-option-arrow';
+    }
+
+    try {
+        const response = await fetch(`${AUTH_API_URL}/api/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                login: email,
+                password: password,
+                role: role
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.token) {
+            const user = data.data || data.user || null;
+            const activeRole = data.active_role || role;
+            const allRoles = data.all_roles || [];
+
+            TokenManager.setAuth(data.token, user, activeRole, allRoles);
+
+            if (modal) modal.classList.remove('active');
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Login Berhasil!',
+                text: `Masuk sebagai ${activeRole.charAt(0).toUpperCase() + activeRole.slice(1)}`,
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                TokenManager.redirectToDashboard();
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal Login',
+                text: data.message || 'Login gagal',
+                confirmButtonColor: '#d62828'
+            });
+            // Re-enable cards
+            cards.forEach(c => {
+                c.style.pointerEvents = 'auto';
+                c.style.opacity = '1';
+            });
+            if (selectedCard) {
+                selectedCard.querySelector('.role-option-arrow').className = 'fa-solid fa-chevron-right role-option-arrow';
+            }
+        }
+    } catch (error) {
+        console.error('Login with role error:', error);
+        Swal.fire({ icon: 'error', title: 'Error', text: error.message });
+        cards.forEach(c => {
+            c.style.pointerEvents = 'auto';
+            c.style.opacity = '1';
+        });
+    }
+}
+
+/**
+ * Close role selection modal
+ */
+function closeRoleModal() {
+    const modal = document.getElementById('roleSelectionModal');
+    if (modal) modal.classList.remove('active');
 }
 
 /**

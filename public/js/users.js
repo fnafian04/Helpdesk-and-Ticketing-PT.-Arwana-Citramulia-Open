@@ -50,12 +50,14 @@
   }
 
   function clearFormHighlights() {
-    ["uName", "uEmail", "uPhone", "uPassword", "uRole", "uDept"].forEach(
+    ["uName", "uEmail", "uPhone", "uPassword", "uDept"].forEach(
       (id) => {
         const el = document.getElementById(id);
         if (el) el.classList.remove("field-changed");
       },
     );
+    const rolesGroup = document.getElementById("uRoles");
+    if (rolesGroup) rolesGroup.classList.remove("field-changed");
   }
 
   function updateEditHighlights() {
@@ -68,8 +70,8 @@
     const uEmail = document.getElementById("uEmail");
     const uPhone = document.getElementById("uPhone");
     const uPassword = document.getElementById("uPassword");
-    const uRole = document.getElementById("uRole");
     const uDept = document.getElementById("uDept");
+    const uRolesGroup = document.getElementById("uRoles");
 
     setFieldChanged(
       uName,
@@ -83,10 +85,10 @@
       uPhone,
       editingUserSnapshot.phone !== String((uPhone && uPhone.value) || ""),
     );
-    setFieldChanged(
-      uRole,
-      editingUserSnapshot.role !== String((uRole && uRole.value) || ""),
-    );
+    // Compare roles arrays
+    const currentRoles = getSelectedRoles().sort().join(',');
+    const snapshotRoles = (editingUserSnapshot.roles || []).slice().sort().join(',');
+    setFieldChanged(uRolesGroup, currentRoles !== snapshotRoles);
     setFieldChanged(
       uDept,
       editingUserSnapshot.departmentId !==
@@ -96,6 +98,26 @@
       uPassword,
       !!(uPassword && uPassword.value && uPassword.value.trim()),
     );
+  }
+
+  /**
+   * Get selected roles from checkboxes
+   * @returns {string[]}
+   */
+  function getSelectedRoles() {
+    const checkboxes = document.querySelectorAll('#uRoles input[type="checkbox"]:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
+  }
+
+  /**
+   * Set role checkboxes by array of role names
+   * @param {string[]} roles
+   */
+  function setSelectedRoles(roles) {
+    const checkboxes = document.querySelectorAll('#uRoles input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+      cb.checked = roles.includes(cb.value);
+    });
   }
 
   // Change per page handler (no longer used, kept for compatibility)
@@ -328,9 +350,9 @@
     }
 
     users.forEach((user) => {
-      const primaryRole = user.roles && user.roles[0] ? user.roles[0] : "user";
-      const roleClass = getRoleClass(primaryRole);
-      const roleName = formatRoleName(primaryRole);
+      const userRoles = user.roles && user.roles.length ? user.roles : ["user"];
+      const roleBadges = userRoles.map(r => `<span class="badge ${getRoleClass(r)}">${formatRoleName(r)}</span>`).join(' ');
+      const rolesDataAttr = encodeURIComponent(JSON.stringify(userRoles));
       const departmentName = user.department ? user.department.name : "-";
       const isActive = !!user.is_active;
       const statusClass = isActive ? "status-active" : "status-inactive";
@@ -347,12 +369,12 @@
                     <div style="font-weight: 600;">${user.name}</div>
                     <small style="color:#999;">${user.email}</small>
                 </td>
-                <td><span class="badge ${roleClass}">${roleName}</span></td>
+                <td><div class="role-badges">${roleBadges}</div></td>
                 <td>${departmentName}</td>
           <td><span class="badge ${statusClass}" id="badge-${user.id}">${statusText}</span></td>
                 <td style="text-align: right;">
                     <button type="button" class="btn-icon btn-edit" 
-                        onclick="editUser(${user.id}, '${user.name}', '${user.email}', '${user.phone}', '${primaryRole}', ${user.department_id || "null"})">
+                        onclick="editUser(${user.id}, '${user.name}', '${user.email}', '${user.phone}', '${rolesDataAttr}', ${user.department_id || "null"})">
                         <i class="fa-solid fa-pen"></i>
                     </button>
             <button type="button" class="btn-icon ${toggleBtnClass}" id="btn-status-${user.id}"
@@ -410,19 +432,28 @@
     const passHint = document.getElementById("passHint");
     if (passHint) passHint.style.display = "none";
 
+    // Reset role checkboxes
+    setSelectedRoles([]);
+
     clearFormHighlights();
 
     const modal = document.getElementById("userModal");
     if (modal) modal.style.display = "flex";
   };
 
-  window.editUser = function (userId, name, email, phone, role, deptId) {
+  window.editUser = function (userId, name, email, phone, rolesEncoded, deptId) {
     editingUserId = userId; // Store user ID for edit mode
+    let roles = [];
+    try {
+      roles = JSON.parse(decodeURIComponent(rolesEncoded));
+    } catch (e) {
+      roles = [rolesEncoded]; // fallback for single role string
+    }
     editingUserSnapshot = {
       name: String(name || ""),
       email: String(email || ""),
       phone: String(phone || ""),
-      role: String(role || ""),
+      roles: roles,
       departmentId: deptId === null || typeof deptId === "undefined" ? "" : String(deptId),
     };
     const modalTitle = document.getElementById("modalTitle");
@@ -434,8 +465,7 @@
     if (uEmail) uEmail.value = email;
     const uPhone = document.getElementById("uPhone");
     if (uPhone) uPhone.value = phone;
-    const uRole = document.getElementById("uRole");
-    if (uRole) uRole.value = role;
+    setSelectedRoles(roles);
 
     if (deptId) {
       const uDept = document.getElementById("uDept");
@@ -604,7 +634,7 @@
     const email = document.getElementById("uEmail").value;
     const phone = document.getElementById("uPhone").value;
     const password = document.getElementById("uPassword").value;
-    const role = document.getElementById("uRole").value;
+    const roles = getSelectedRoles();
     const departmentId = document.getElementById("uDept").value;
 
     const isEditMode = editingUserId !== null;
@@ -629,15 +659,27 @@
       return;
     }
 
+    if (roles.length === 0) {
+      Swal.fire({
+        icon: "error",
+        title: "Role Belum Dipilih",
+        text: "Pilih minimal satu role untuk user",
+        confirmButtonColor: "#d62828",
+      });
+      return;
+    }
+
     if (isEditMode) {
       const normalizedDeptId = departmentId ? String(departmentId) : "";
       const hasPasswordChange = !!(password && password.trim());
+      const currentRolesSorted = roles.slice().sort().join(',');
+      const snapshotRolesSorted = (editingUserSnapshot.roles || []).slice().sort().join(',');
       const hasFieldChange =
         !editingUserSnapshot ||
         editingUserSnapshot.name !== String(name || "") ||
         editingUserSnapshot.email !== String(email || "") ||
         editingUserSnapshot.phone !== String(phone || "") ||
-        editingUserSnapshot.role !== String(role || "") ||
+        currentRolesSorted !== snapshotRolesSorted ||
         editingUserSnapshot.departmentId !== normalizedDeptId;
 
       if (!hasFieldChange && !hasPasswordChange) {
@@ -673,7 +715,7 @@
             email,
             phone,
             department_id: parseInt(departmentId),
-            roles: [role],
+            roles: roles,
           };
           const response = await fetch(
             `${API_URL}/api/users/${editingUserId}`,
@@ -763,7 +805,7 @@
               phone,
               password,
               department_id: parseInt(departmentId),
-              roles: [role],
+              roles: roles,
             }),
           });
 
@@ -840,10 +882,16 @@
       el.addEventListener("input", () => updateEditHighlights());
     });
 
-    ["uRole", "uDept"].forEach((id) => {
+    ["uDept"].forEach((id) => {
       const el = document.getElementById(id);
       if (!el) return;
       el.addEventListener("change", () => updateEditHighlights());
+    });
+
+    // Role checkboxes change listener
+    const roleCheckboxes = document.querySelectorAll('#uRoles input[type="checkbox"]');
+    roleCheckboxes.forEach(cb => {
+      cb.addEventListener("change", () => updateEditHighlights());
     });
 
     // Search input with debounce

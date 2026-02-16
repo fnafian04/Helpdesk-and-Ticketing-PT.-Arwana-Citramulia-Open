@@ -30,13 +30,22 @@ class AuthQueryService
     }
 
     /**
-     * Get current user with roles and permissions
+     * Get current user with roles and permissions.
+     * Jika $activeRole diberikan, permissions difilter hanya untuk role tersebut.
      */
-    public function getCurrentUser(User $user): array
+    public function getCurrentUser(User $user, ?string $activeRole = null): array
     {
         // Load department relation
         $user->load('department');
-        
+
+        // Jika active role diberikan, ambil permission khusus role itu saja
+        if ($activeRole) {
+            $role = \Spatie\Permission\Models\Role::findByName($activeRole, 'web');
+            $permissions = $role ? $role->permissions->pluck('name') : collect();
+        } else {
+            $permissions = $user->getAllPermissions()->pluck('name');
+        }
+
         return [
             'user' => [
                 'id' => $user->id,
@@ -50,8 +59,9 @@ class AuthQueryService
                 'created_at' => $user->created_at,
                 'updated_at' => $user->updated_at,
             ],
-            'roles' => $user->getRoleNames(),
-            'permissions' => $user->getAllPermissions()->pluck('name'),
+            'active_role' => $activeRole ?? $user->getRoleNames()->first(),
+            'all_roles' => $user->getRoleNames(),
+            'permissions' => $permissions,
             'email_verification_required' => (bool) config('emailverification.enabled'),
         ];
     }

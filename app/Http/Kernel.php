@@ -23,6 +23,10 @@ class Kernel extends HttpKernel
         'role' => RoleMiddleware::class,
         'permission' => PermissionMiddleware::class,
         'role_or_permission' => RoleOrPermissionMiddleware::class,
+
+        // Active role middleware - cek berdasarkan role yang dipilih saat login
+        'active_role' => \App\Http\Middleware\CheckActiveRole::class,
+        'active_permission' => \App\Http\Middleware\CheckActivePermission::class,
     ];
 
     protected $middleware = [

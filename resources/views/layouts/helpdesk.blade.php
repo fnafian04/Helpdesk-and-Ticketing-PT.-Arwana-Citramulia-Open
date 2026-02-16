@@ -85,6 +85,7 @@
         </div>
 
         <div class="mt-auto">
+            @include('partials.switch-role')
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
                 <button type="submit" class="btn-logout">

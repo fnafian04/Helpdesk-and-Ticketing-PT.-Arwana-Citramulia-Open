@@ -34,13 +34,17 @@ class TicketQueryService
             'solution'
         ]);
 
-        // Role-based filtering
-        if ($user->hasRole('requester')) {
-            $query->where('requester_id', $user->id);
-        } elseif ($user->hasRole('technician')) {
+        // Role-based filtering berdasarkan active role dari token
+        $activeRole = $user->activeRole();
+
+        if (in_array($activeRole, ['master-admin', 'helpdesk'])) {
+            // Bisa lihat semua tickets
+        } elseif ($activeRole === 'technician') {
             $query->whereHas('assignment', fn ($a) =>
                 $a->where('assigned_to', $user->id)
             );
+        } elseif ($activeRole === 'requester') {
+            $query->where('requester_id', $user->id);
         }
 
         // Filter by status

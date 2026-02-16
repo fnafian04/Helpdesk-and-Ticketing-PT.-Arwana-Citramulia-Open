@@ -16,17 +16,31 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // Check if user is authenticated
   const authenticated = await TokenManager.isAuthenticated();
-  const rolesValid = await TokenManager.validateRoles();
   if (!authenticated) {
-    console.log("User not authenticated, redirecting to login...");
-    window.location.href = "/login";
-    return;
+    // Only redirect if there's no token left (cleared by 401) or never had one
+    // If token still exists, it might be a temporary network error — don't redirect
+    if (!TokenManager.hasToken()) {
+      console.log("User not authenticated, redirecting to login...");
+      window.location.href = "/login";
+      return;
+    }
+    // Token exists but validation failed (network error) — skip redirect, let page load
+    console.warn("Token validation failed but token still exists (possible network issue). Continuing...");
   }
 
-  if (!rolesValid) {
-    console.log("User roles invalid, redirecting to login...");
-    window.location.href = "/login";
-    return;
+  // Only validate roles if token is valid (avoid wasteful API call after clearAuth)
+  if (TokenManager.hasToken()) {
+    const rolesValid = await TokenManager.validateRoles();
+    if (!rolesValid && !TokenManager.hasToken()) {
+      // Token was cleared by validateRoles (401) — redirect to login
+      console.log("User roles invalid (token revoked), redirecting to login...");
+      window.location.href = "/login";
+      return;
+    }
+    // If rolesValid is false but token still exists → network error, continue
+    if (!rolesValid) {
+      console.warn("Role validation failed but token still exists (possible network issue). Continuing...");
+    }
   }
 
   // Check email verification status (skip if verification is disabled)
@@ -57,12 +71,24 @@ async function runAuthCheck() {
 
   try {
     const authenticated = await TokenManager.isAuthenticated();
-    const rolesValid = authenticated
-      ? await TokenManager.validateRoles()
-      : false;
 
-    if (!authenticated || !rolesValid) {
-      console.log("Auth check failed, redirecting to login...");
+    // If token was explicitly revoked (cleared by 401), logout
+    if (!authenticated && !TokenManager.hasToken()) {
+      console.log("Auth check: token revoked, logging out...");
+      TokenManager.logout();
+      return;
+    }
+
+    // If token still exists but validation failed (network error), skip — don't logout
+    if (!authenticated && TokenManager.hasToken()) {
+      console.warn("Auth check: validation failed but token exists (possible network issue). Skipping.");
+      return;
+    }
+
+    // Token valid, now validate roles
+    const rolesValid = await TokenManager.validateRoles();
+    if (!rolesValid && !TokenManager.hasToken()) {
+      console.log("Auth check: roles invalid (token revoked), logging out...");
       TokenManager.logout();
       return;
     }
@@ -107,7 +133,6 @@ TokenManager.isGuestSafe = function () {
  */
 function displayUserInfo() {
   const user = TokenManager.getUser();
-  const roles = TokenManager.getRoles();
 
   if (!user) return;
 
@@ -127,13 +152,13 @@ function displayUserInfo() {
     el.textContent = user.email || "";
   });
 
-  // Update role badge displays
-  if (roles && roles.length > 0) {
+  // Update role badge displays - show active role
+  const activeRole = TokenManager.getActiveRole();
+  if (activeRole) {
     const roleElements = document.querySelectorAll(
       ".user-role, #userRole, [data-user-role]",
     );
-    const roleName = roles[0].name || roles[0];
-    const roleDisplay = formatRoleName(roleName);
+    const roleDisplay = formatRoleName(activeRole);
 
     roleElements.forEach((el) => {
       el.textContent = roleDisplay;

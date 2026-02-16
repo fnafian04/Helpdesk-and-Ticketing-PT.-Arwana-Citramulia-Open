@@ -41,13 +41,14 @@ class AuthController extends Controller
             $user->sendEmailVerificationNotification();
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-        $userData = $this->queryService->getCurrentUser($user);
+        $token = $user->createToken('auth_token:requester')->plainTextToken;
+        $userData = $this->queryService->getCurrentUser($user, 'requester');
 
         return response()->json([
             'message' => 'Register success',
             'user' => $userData['user'],
-            'roles' => $userData['roles'],
+            'active_role' => 'requester',
+            'all_roles' => ['requester'],
             'permissions' => $userData['permissions'],
             'token' => $token,
         ], 201);
@@ -72,16 +73,43 @@ class AuthController extends Controller
             ], 403);
         }
 
+        $userRoles = $user->getRoleNames()->toArray();
+        $selectedRole = $validated['role'] ?? null;
+
+        // Jika user punya lebih dari 1 role dan belum memilih role
+        if (count($userRoles) > 1 && !$selectedRole) {
+            return response()->json([
+                'message' => 'Akun ini memiliki beberapa role. Silakan pilih role untuk login.',
+                'role_selection_required' => true,
+                'available_roles' => $userRoles,
+            ], 300);
+        }
+
+        // Jika user punya 1 role, otomatis pakai role itu
+        if (count($userRoles) === 1) {
+            $selectedRole = $userRoles[0];
+        }
+
+        // Validasi: role yang dipilih harus dimiliki user
+        if ($selectedRole && !in_array($selectedRole, $userRoles)) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki role tersebut.',
+                'available_roles' => $userRoles,
+            ], 422);
+        }
+
         $user->tokens()->delete();
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        // Simpan active role di token name: "auth_token:{role}"
+        $token = $user->createToken('auth_token:' . $selectedRole)->plainTextToken;
 
-        $userData = $this->queryService->getCurrentUser($user);
+        $userData = $this->queryService->getCurrentUser($user, $selectedRole);
 
         return response()->json([
             'message' => 'Login success',
             'user' => $userData['user'],
-            'roles' => $userData['roles'],
+            'active_role' => $selectedRole,
+            'all_roles' => $userRoles,
             'permissions' => $userData['permissions'],
             'token' => $token,
         ]);
@@ -99,20 +127,65 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         $user = $request->user();
-        return response()->json($this->queryService->getCurrentUser($user));
+        $activeRole = $user->activeRole();
+        $userData = $this->queryService->getCurrentUser($user, $activeRole);
+
+        return response()->json($userData);
     }
 
     public function validateToken(Request $request)
     {
         $user = $request->user();
-        $userData = $this->queryService->getCurrentUser($user);
+        $activeRole = $user->activeRole();
+        $userData = $this->queryService->getCurrentUser($user, $activeRole);
 
         return response()->json([
             'message' => 'Token is valid',
             'valid' => true,
             'user' => $userData['user'],
-            'roles' => $userData['roles'],
+            'active_role' => $activeRole,
+            'all_roles' => $user->getRoleNames(),
             'permissions' => $userData['permissions'],
+        ]);
+    }
+
+    /**
+     * POST /api/switch-role
+     * Ganti active role tanpa login ulang (untuk user dengan multiple roles)
+     */
+    public function switchRole(Request $request)
+    {
+        $request->validate([
+            'role' => 'required|string|in:master-admin,helpdesk,technician,requester',
+        ], [
+            'role.required' => 'Role wajib dipilih',
+            'role.in' => 'Role harus salah satu dari: master-admin, helpdesk, technician, requester',
+        ]);
+
+        $user = $request->user();
+        $newRole = $request->input('role');
+
+        // Validasi user memiliki role tersebut
+        if (!$user->hasRole($newRole)) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki role tersebut.',
+                'available_roles' => $user->getRoleNames(),
+            ], 422);
+        }
+
+        // Hapus semua token lama dan buat token baru dengan active role
+        $user->tokens()->delete();
+        $token = $user->createToken('auth_token:' . $newRole)->plainTextToken;
+
+        $userData = $this->queryService->getCurrentUser($user, $newRole);
+
+        return response()->json([
+            'message' => 'Role berhasil diubah ke ' . $newRole,
+            'user' => $userData['user'],
+            'active_role' => $newRole,
+            'all_roles' => $user->getRoleNames(),
+            'permissions' => $userData['permissions'],
+            'token' => $token,
         ]);
     }
 

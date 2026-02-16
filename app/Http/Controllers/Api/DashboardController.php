@@ -30,50 +30,36 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        // Master admin dashboard
-        if ($user->hasRole('master-admin')) {
-            $data = $this->masterAdminDashboard->getDashboardData();
+        // Dashboard berdasarkan active role yang dipilih saat login
+        $activeRole = $user->activeRole();
+        $dashboardData = [];
 
-            return response()->json([
-                'message' => 'Dashboard data retrieved successfully',
-                'data' => $data,
-            ]);
-        }
-
-        // Helpdesk dashboard
-        if ($user->hasRole('helpdesk')) {
-            $data = $this->helpdeskDashboard->getDashboardData();
-
-            return response()->json([
-                'message' => 'Dashboard data retrieved successfully',
-                'data' => $data,
-            ]);
-        }
-
-        // Technician dashboard
-        if ($user->hasRole('technician')) {
-            $technicianDashboard = new TechnicianDashboard($user);
-            $data = $technicianDashboard->getDashboardData();
-
-            return response()->json([
-                'message' => 'Dashboard data retrieved successfully',
-                'data' => $data,
-            ]);
-        }
-
-        // Requester dashboard
-        if ($user->hasRole('requester')) {
-            $requesterDashboard = new RequesterDashboard($user);
-            $data = $requesterDashboard->getDashboardData();
-
-            return response()->json([
-                'message' => 'Dashboard data retrieved successfully',
-                'data' => $data,
-            ]);
+        switch ($activeRole) {
+            case 'master-admin':
+                $dashboardData = $this->masterAdminDashboard->getDashboardData();
+                break;
+            case 'helpdesk':
+                $dashboardData = $this->helpdeskDashboard->getDashboardData();
+                break;
+            case 'technician':
+                $technicianDashboard = new TechnicianDashboard($user);
+                $dashboardData = $technicianDashboard->getDashboardData();
+                break;
+            case 'requester':
+                $requesterDashboard = new RequesterDashboard($user);
+                $dashboardData = $requesterDashboard->getDashboardData();
+                break;
+            default:
+                return response()->json([
+                    'message' => 'You do not have access to this dashboard',
+                ], 403);
         }
 
         return response()->json([
-            'message' => 'You do not have access to this dashboard',
-        ], 403);
+            'message' => 'Dashboard data retrieved successfully',
+            'data' => $dashboardData,
+            'active_role' => $activeRole,
+            'all_roles' => $user->getRoleNames(),
+        ]);
     }
 }

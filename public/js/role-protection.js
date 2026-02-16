@@ -1,18 +1,47 @@
 /**
  * Role-Specific Page Protection
- * Protects pages that require specific roles
+ * Protects pages based on the user's active role (selected during login)
  */
 
 /**
  * Require Guest (Sync version for login/register pages)
- * Use this on login/register pages to redirect if already logged in
+ * Use this on login/register pages to redirect if already logged in.
+ * Checks both token AND role data to prevent redirect loops when session is partial/corrupted.
  */
 function requireGuestSync() {
-    // Use synchronous check only
+    // Detect redirect loop: if page loaded too many times in a short period, force clear
+    const now = Date.now();
+    const lastRedirect = parseInt(sessionStorage.getItem('_login_redirect_ts') || '0', 10);
+    const redirectCount = parseInt(sessionStorage.getItem('_login_redirect_count') || '0', 10);
+
+    if (now - lastRedirect < 3000) {
+        // Loaded within 3 seconds — possible loop
+        if (redirectCount >= 3) {
+            console.warn('Redirect loop detected! Force clearing all session data.');
+            sessionStorage.clear();
+            return true; // Show login page
+        }
+        sessionStorage.setItem('_login_redirect_count', String(redirectCount + 1));
+    } else {
+        // Reset counter — enough time has passed, this is a normal page load
+        sessionStorage.setItem('_login_redirect_count', '1');
+    }
+    sessionStorage.setItem('_login_redirect_ts', String(now));
+
+    // Check token AND role — if token exists but role is missing/invalid, clear auth keys only
     if (TokenManager.hasToken()) {
-        console.log('User already authenticated, redirecting to dashboard...');
-        TokenManager.redirectToDashboard();
-        return false;
+        const activeRole = TokenManager.getActiveRole();
+        const knownRoles = ['master-admin', 'helpdesk', 'technician', 'requester'];
+
+        if (activeRole && knownRoles.includes(activeRole)) {
+            console.log('User already authenticated with valid role, redirecting to dashboard...');
+            TokenManager.redirectToDashboard();
+            return false;
+        }
+
+        // Token exists but role data is missing/invalid — clear auth keys to break loop
+        console.warn('Token exists but active role is missing or invalid. Clearing auth data.');
+        TokenManager.clearAuth();
     }
     return true;
 }
@@ -24,11 +53,10 @@ async function requireRequesterRole() {
     const authenticated = await TokenManager.requireAuth();
     if (!authenticated) return;
     
-    const roles = TokenManager.getRoles();
+    const activeRole = TokenManager.getActiveRole();
     const allowedRoles = ['requester', 'master-admin'];
-    const hasAccess = allowedRoles.some(role => TokenManager.hasRole(role));
     
-    if (!hasAccess) {
+    if (!allowedRoles.includes(activeRole)) {
         TokenManager.redirectToDashboard();
     }
 }
@@ -40,9 +68,11 @@ async function requireTechnicianRole() {
     const authenticated = await TokenManager.requireAuth();
     if (!authenticated) return;
     
+    const activeRole = TokenManager.getActiveRole();
     const allowedRoles = ['technician', 'master-admin'];
-    const hasPermission = await TokenManager.requireRole(allowedRoles);
-    if (!hasPermission) {
+
+    if (!allowedRoles.includes(activeRole)) {
+        TokenManager.redirectToDashboard();
         return false;
     }
     return true;
@@ -55,9 +85,11 @@ async function requireHelpdeskRole() {
     const authenticated = await TokenManager.requireAuth();
     if (!authenticated) return;
     
+    const activeRole = TokenManager.getActiveRole();
     const allowedRoles = ['helpdesk', 'master-admin'];
-    const hasPermission = await TokenManager.requireRole(allowedRoles);
-    if (!hasPermission) {
+    
+    if (!allowedRoles.includes(activeRole)) {
+        TokenManager.redirectToDashboard();
         return false;
     }
     return true;
@@ -70,8 +102,10 @@ async function requireMasterAdminRole() {
     const authenticated = await TokenManager.requireAuth();
     if (!authenticated) return;
     
-    const hasPermission = await TokenManager.requireRole(['master-admin']);
-    if (!hasPermission) {
+    const activeRole = TokenManager.getActiveRole();
+    
+    if (activeRole !== 'master-admin') {
+        TokenManager.redirectToDashboard();
         return false;
     }
     return true;

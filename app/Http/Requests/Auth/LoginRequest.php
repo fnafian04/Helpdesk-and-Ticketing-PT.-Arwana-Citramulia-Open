@@ -16,6 +16,7 @@ class LoginRequest extends FormRequest
         return [
             'login' => 'required|string',
             'password' => 'required|string',
+            'role' => 'sometimes|nullable|string|in:master-admin,helpdesk,technician,requester',
         ];
     }
 
@@ -24,6 +25,7 @@ class LoginRequest extends FormRequest
         return [
             'login.required' => 'Email atau nomor telepon wajib diisi',
             'password.required' => 'Password wajib diisi',
+            'role.in' => 'Role harus salah satu dari: master-admin, helpdesk, technician, requester',
         ];
     }
 }

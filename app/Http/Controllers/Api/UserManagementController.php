@@ -49,7 +49,7 @@ class UserManagementController extends Controller
      */
     private function checkMasterAdminRole($user)
     {
-        if (!$user->hasRole('master-admin')) {
+        if (!$user->isActiveRole('master-admin')) {
             abort(403, 'Only master-admin can access this feature');
         }
     }
@@ -302,13 +302,14 @@ class UserManagementController extends Controller
     public function resolvedTickets(Request $request, User $user)
     {
         $currentUser = $request->user();
+        $activeRole = $currentUser->activeRole();
         
-        // Allow if master-admin or helpdesk
-        if ($currentUser->hasPermissionTo('user.view')) {
+        // Allow if active role is master-admin or helpdesk
+        if (in_array($activeRole, ['master-admin', 'helpdesk'])) {
             // Has permission to view all users
         } 
         // Allow if technician viewing their own data
-        elseif ($currentUser->hasRole('technician') && $currentUser->id === $user->id) {
+        elseif ($activeRole === 'technician' && $currentUser->id === $user->id) {
             // Allow technician to view their own resolved tickets
         } 
         else {
@@ -337,10 +338,11 @@ class UserManagementController extends Controller
     public function assignedTickets(Request $request, User $user)
     {
         $currentUser = $request->user();
+        $activeRole = $currentUser->activeRole();
 
-        if ($currentUser->hasPermissionTo('user.view')) {
+        if (in_array($activeRole, ['master-admin', 'helpdesk'])) {
             // Has permission to view all users
-        } elseif ($currentUser->hasRole('technician') && $currentUser->id === $user->id) {
+        } elseif ($activeRole === 'technician' && $currentUser->id === $user->id) {
             // Allow technician to view their own assigned tickets
         } else {
             abort(403, 'You do not have permission to view this user\'s assigned tickets');

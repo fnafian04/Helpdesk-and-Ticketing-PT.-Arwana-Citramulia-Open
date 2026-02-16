@@ -10,7 +10,7 @@ class ResetPasswordRequest extends FormRequest
 {
     public function authorize()
     {
-        return auth()->check() && auth()->user()->hasRole('master-admin');
+        return auth()->check() && auth()->user()->isActiveRole('master-admin');
     }
 
     protected function failedAuthorization()

@@ -242,6 +242,70 @@
     color: #c2185b;
 }
 
+/* Role badges in table */
+.role-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+/* Role Checkbox Group */
+.role-checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 4px 0;
+    border-radius: 8px;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.role-checkbox-group.field-changed {
+    background: #fff7e6;
+    box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.12);
+    padding: 6px;
+    border-radius: 8px;
+}
+
+.role-checkbox {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.role-checkbox input[type="checkbox"] {
+    display: none;
+}
+
+.role-checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+    background: #fafafa;
+    transition: all 0.15s ease;
+}
+
+.role-checkbox-label i {
+    font-size: 12px;
+}
+
+.role-checkbox:hover .role-checkbox-label {
+    border-color: #90caf9;
+    background: #f5f9ff;
+}
+
+.role-checkbox input[type="checkbox"]:checked + .role-checkbox-label {
+    border-color: #1565c0;
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
 .status-active {
     background: #e8f5e9;
     color: #2e7d32;

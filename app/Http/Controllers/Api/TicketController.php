@@ -96,13 +96,17 @@ class TicketController extends Controller
 
         $query = Ticket::query();
 
-        // Role-based filtering (same as index)
-        if ($user->hasRole('requester')) {
-            $query->where('requester_id', $user->id);
-        } elseif ($user->hasRole('technician')) {
+        // Role-based filtering berdasarkan active role dari token
+        $activeRole = $user->activeRole();
+
+        if (in_array($activeRole, ['master-admin', 'helpdesk'])) {
+            // Bisa lihat semua tickets
+        } elseif ($activeRole === 'technician') {
             $query->whereHas('assignment', function ($q) use ($user) {
                 $q->where('technician_id', $user->id);
             });
+        } elseif ($activeRole === 'requester') {
+            $query->where('requester_id', $user->id);
         }
 
         // Status filter
@@ -143,7 +147,7 @@ class TicketController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->hasRole('technician')) {
+        if (!$user->isActiveRole('technician')) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
@@ -188,7 +192,7 @@ class TicketController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->hasRole('technician')) {
+        if (!$user->isActiveRole('technician')) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
@@ -240,8 +244,8 @@ class TicketController extends Controller
     {
         $user = request()->user();
         
-        // Check if user is requester of the ticket and ticket is RESOLVED
-        if ($user->hasRole('requester')) {
+        // Check if active role is requester and ticket is RESOLVED
+        if ($user->isActiveRole('requester')) {
             if ($ticket->requester_id !== $user->id) {
                 return response()->json(['message' => 'Unauthorized - Anda hanya bisa menutup ticket Anda sendiri'], 403);
             }
@@ -417,7 +421,8 @@ class TicketController extends Controller
         $user = $request->user();
         $ticket->load(['assignment']);
 
-        $isPrivileged = $user->hasRole('master-admin') || $user->hasRole('helpdesk');
+        $activeRole = $user->activeRole();
+        $isPrivileged = in_array($activeRole, ['master-admin', 'helpdesk']);
         $isRelatedRequester = $ticket->requester_id === $user->id;
         $isRelatedTechnician = $ticket->assignment && $ticket->assignment->assigned_to === $user->id;
 

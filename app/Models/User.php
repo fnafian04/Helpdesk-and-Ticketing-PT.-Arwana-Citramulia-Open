@@ -135,4 +135,37 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->save();
     }
 
+    /**
+     * Get the active role from the current Sanctum token.
+     * Token name format: "auth_token:{role}" (e.g. "auth_token:helpdesk")
+     * Falls back to the user's first (or highest priority) role if no token context.
+     */
+    public function activeRole(): ?string
+    {
+        $token = $this->currentAccessToken();
+
+        // Cek apakah token punya attribute name (PersonalAccessToken, bukan TransientToken)
+        if ($token && method_exists($token, 'getAttribute') && $token->getAttribute('name') && str_contains($token->getAttribute('name'), ':')) {
+            return explode(':', $token->getAttribute('name'), 2)[1];
+        }
+
+        // Fallback: return highest priority role
+        $priority = ['master-admin', 'helpdesk', 'technician', 'requester'];
+        foreach ($priority as $role) {
+            if ($this->hasRole($role)) {
+                return $role;
+            }
+        }
+
+        return $this->getRoleNames()->first();
+    }
+
+    /**
+     * Check if active role matches the given role name.
+     */
+    public function isActiveRole(string $role): bool
+    {
+        return $this->activeRole() === $role;
+    }
+
 }
