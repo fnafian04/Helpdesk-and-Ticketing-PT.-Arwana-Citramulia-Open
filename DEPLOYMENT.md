@@ -123,7 +123,61 @@ sudo apt install certbot python3-certbot-nginx -y
 
 ---
 
-## 3. Deployment Step-by-Step
+
+## 2. Proses Deployment (ZIP)
+
+### 2.1 Checklist Isi ZIP dari Developer
+
+Pastikan file ZIP dari developer sudah berisi **semua file berikut** (tidak perlu build ulang di server):
+
+```
+WAJIB ada dalam ZIP:
+├── app/
+├── bootstrap/
+├── config/
+├── database/
+├── public/ (termasuk public/build/ hasil npm run build)
+├── resources/
+├── routes/
+├── storage/ (struktur saja, log/cache boleh kosong)
+├── tests/
+├── .env.production
+├── .env.example
+├── artisan
+├── composer.json
+├── composer.lock
+├── package.json
+├── package-lock.json
+├── vite.config.js
+├── DEPLOYMENT.md
+```
+
+**JANGAN include:**
+- node_modules/
+- vendor/
+- .env (development)
+- public/hot
+- storage/logs/*.log
+
+### 2.3 Ekstrak ZIP di Server
+
+```bash
+sudo mkdir -p /var/www/ticketing-arwana
+sudo unzip /tmp/ticketing-arwana-production.zip -d /var/www/ticketing-arwana
+sudo chown -R www-data:www-data /var/www/ticketing-arwana
+sudo chmod -R 775 /var/www/ticketing-arwana/storage
+sudo chmod -R 775 /var/www/ticketing-arwana/bootstrap/cache
+```
+
+> **Catatan:**
+> - Tidak perlu menjalankan `npm install` atau `npm run build` lagi di server jika folder `public/build/` sudah ada.
+> - Semua dependensi PHP akan di-install via `composer install` (lihat langkah berikutnya).
+
+### 2.4 Lanjutkan ke Langkah 5 (Install Dependencies di Server)
+
+Ikuti langkah selanjutnya mulai dari **Bagian 5** di bawah (Install Dependencies di Server).
+
+---
 
 ### 3.1 Clone & Setup Project
 
@@ -361,21 +415,28 @@ Tambahkan baris berikut:
 
 ---
 
-## 8. Ringkasan Versi Environment
 
-| Software       | Versi            | Keterangan                            |
-|---------------|------------------|---------------------------------------|
-| **Ubuntu**    | 22.04 / 24.04 LTS | Server OS                           |
-| **Nginx**     | 1.24+            | Web server                            |
-| **PHP**       | 8.2.x (min 8.1) | Runtime, sesuai `composer.json`       |
-| **PHP-FPM**   | 8.2              | FastCGI process manager               |
-| **PostgreSQL**| 15+              | Database (`DB_CONNECTION=pgsql`)      |
-| **Composer**  | 2.x              | PHP dependency manager                |
-| **Node.js**   | 18.x LTS        | Build frontend assets (Vite)          |
-| **NPM**       | 9.x+            | Package manager JS                    |
-| **Supervisor**| 4.x             | Queue worker daemon                   |
-| **Certbot**   | latest           | SSL certificate (Let's Encrypt)       |
-| **Git**       | 2.x             | Version control                       |
+## 20. Ringkasan Versi Software Aplikasi
+
+| Komponen        | Versi Minimum      | Keterangan                               |
+|-----------------|-------------------|------------------------------------------|
+| **Ubuntu**      | 22.04 LTS         | Server OS                                |
+| **Nginx**       | 1.24+             | Web server + reverse proxy               |
+| **PHP**         | 8.2.x (min 8.1)   | Runtime, sesuai `composer.json`          |
+| **PHP-FPM**     | 8.2               | FastCGI process manager                  |
+| **PostgreSQL**  | 15+               | Database (`DB_CONNECTION=pgsql`)         |
+| **Composer**    | 2.x               | PHP dependency manager                   |
+| **Node.js**     | 18.x LTS          | Build frontend assets (Vite) — opsional  |
+| **NPM**         | 9.x+              | Package manager JS — opsional            |
+| **Supervisor**  | 4.x               | Queue worker daemon                      |
+| **Certbot**     | latest            | SSL certificate (Let's Encrypt)          |
+| **Laravel**     | 10.x              | PHP framework                            |
+| **Sanctum**     | 3.x               | API token authentication                 |
+| **Spatie**      | 6.x               | Role & permission management             |
+| **Maatwebsite** | 3.x               | Excel export/import                      |
+| **Git**         | 2.x               | Version control                          |
+
+---
 
 ---
 
